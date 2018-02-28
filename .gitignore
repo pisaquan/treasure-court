@@ -1,20 +1,13 @@
-
 # Ignore all logfiles and tempfiles.
+.project
+/*/.project
+
+.classpath
+/*/.classpath
 
 .settings
 /*/.settings
 /*/.settings/*
-
-.project
-
-.classpath
-/*/.classpath
-/*/.classpath/*
-
-
-bin
-/*/bin
-/*/bin/*
 
 target
 /*/target
@@ -25,17 +18,14 @@ target
 .svn
 .svn/*
 
-catalina.base_IS_UNDEFINED
-/*/catalina.base_IS_UNDEFINED
-/*/catalina.base_IS_UNDEFINED/*
-
 .idea
 .idea/*
 *.iml
 Thumbs.db
 
-/*/test/**/My*.java
-/*/test/**/*_*.java
-/*/test/**/*Method.java
-mytest
-/com/mytest/
+catalina.base_IS_UNDEFINED
+/*/catalina.base_IS_UNDEFINED
+/*/catalina.base_IS_UNDEFINED/*
+/bin
+/target
+/target
