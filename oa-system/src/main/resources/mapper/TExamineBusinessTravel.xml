@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sancai.oasystem.dao.TExamineBusinessTravelMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.sancai.oasystem.bean.TExamineBusinessTravel">
+        <id column="id" property="id" />
+        <result column="user_id" property="userId" />
+        <result column="process_code" property="processCode" />
+        <result column="process_instance_id" property="processInstanceId" />
+        <result column="process_title" property="processTitle" />
+        <result column="process_create_time" property="processCreateTime" />
+        <result column="process_finish_time" property="processFinishTime" />
+        <result column="process_status" property="processStatus" />
+        <result column="process_result" property="processResult" />
+        <result column="form_value_company" property="formValueCompany" />
+        <result column="form_value_reason" property="formValueReason" />
+        <result column="form_value_from_city" property="formValueFromCity" />
+        <result column="form_value_to_city" property="formValueToCity" />
+        <result column="form_value_start_time" property="formValueStartTime" />
+        <result column="form_value_finish_time" property="formValueFinishTime" />
+        <result column="form_value_start_transport" property="formValueStartTransport" />
+        <result column="form_value_finish_transport" property="formValueFinishTransport" />
+        <result column="form_value_hotel_type" property="formValueHotelType" />
+        <result column="form_value_remark" property="formValueRemark" />
+        <result column="create_time" property="createTime" />
+        <result column="modify_time" property="modifyTime" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, user_id, process_code, process_instance_id, process_title, process_create_time, process_finish_time, process_status, process_result, form_value_company, form_value_reason, form_value_from_city, form_value_to_city, form_value_start_time, form_value_finish_time, form_value_start_transport, form_value_finish_transport, form_value_hotel_type, form_value_remark, create_time, modify_time, deleted
+    </sql>
+
+</mapper>
