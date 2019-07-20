@@ -19,7 +19,7 @@ import java.io.Serializable;
 @Accessors(chain = true)
 public class ExamineBaseVO implements Serializable {
 
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2859503492205713863L;
 
     /**
      * 编号

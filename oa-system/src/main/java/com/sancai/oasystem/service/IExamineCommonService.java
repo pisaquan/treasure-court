@@ -1,6 +1,7 @@
 package com.sancai.oasystem.service;
 
 import com.dingtalk.api.response.OapiProcessinstanceGetResponse;
+import com.sancai.oasystem.bean.DdExamineInstanceVO;
 import com.sancai.oasystem.bean.ExamineBaseVO;
 import com.sancai.oasystem.bean.TExamineLeave;
 
@@ -21,7 +22,7 @@ public interface IExamineCommonService {
      * 获取审批表单实体数据
      * @return 审批表单实体
      */
-    List<TExamineLeave> pullDingTalkExamineData(String group);
+    List<DdExamineInstanceVO> pullDingTalkExamineData(String group);
 
     /**
      * 根据appkey和appsecret获取AccessToken
@@ -44,5 +45,5 @@ public interface IExamineCommonService {
      * @param ExamineInstanceId
      * @return
      */
-    OapiProcessinstanceGetResponse.ProcessInstanceTopVo ExamineInstanceGetById(String ExamineInstanceId, String accessToken);
+    OapiProcessinstanceGetResponse.ProcessInstanceTopVo ExamineInstanceGetById(String ExamineInstanceId,String accessToken);
 }
