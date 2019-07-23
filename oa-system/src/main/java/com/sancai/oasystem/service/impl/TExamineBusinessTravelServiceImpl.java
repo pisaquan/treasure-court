@@ -1,8 +1,11 @@
 package com.sancai.oasystem.service.impl;
 
 import com.sancai.oasystem.bean.TExamineBusinessTravel;
+import com.sancai.oasystem.bean.enums.ExamineFormCompEnum;
+import com.sancai.oasystem.bean.enums.ExamineTypeEnum;
 import com.sancai.oasystem.dao.TExamineBusinessTravelMapper;
-import com.sancai.oasystem.service.TExamineBusinessTravelService;
+import com.sancai.oasystem.service.IExamineDataService;
+import com.sancai.oasystem.service.ITExamineBusinessTravelService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
@@ -16,10 +19,11 @@ import org.springframework.stereotype.Service;
  * @since 2019-07-18
  */
 @Service
-public class TExamineBusinessTravelServiceImpl extends ServiceImpl<TExamineBusinessTravelMapper, TExamineBusinessTravel> implements TExamineBusinessTravelService {
+public class TExamineBusinessTravelServiceImpl extends ServiceImpl<TExamineBusinessTravelMapper, TExamineBusinessTravel> implements ITExamineBusinessTravelService,IExamineDataService {
+
 
     @Override
-    public void pullDingTalkBusinessTravelData() {
+    public void dealExamineData(String group) {
 
     }
 }

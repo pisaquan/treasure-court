@@ -8,18 +8,15 @@ import com.dingtalk.api.request.OapiGettokenRequest;
 import com.dingtalk.api.response.OapiAttendanceGetsimplegroupsResponse;
 import com.dingtalk.api.response.OapiDepartmentGetResponse;
 import com.dingtalk.api.response.OapiGettokenResponse;
-import com.sancai.oasystem.bean.ExamineBaseVO;
-import com.sancai.oasystem.bean.TExamineLeave;
-import com.sancai.oasystem.dao.TExamineLeaveMapper;
-import com.sancai.oasystem.service.TExamineLeaveService;
+import com.sancai.oasystem.bean.enums.ExamineTypeEnum;
+import com.sancai.oasystem.controller.TExamineController;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 @RunWith(SpringRunner.class)
@@ -30,7 +27,7 @@ public class OaSystemApplicationTests {
 	String appsecret = "nGKknhri4XwBjcLxkZFacafx10_k67dUT6B09kJF50xLBrwb9AULlVQxcI4L0W3W";
 
 	@Autowired
-	private TExamineLeaveService tExamineLeaveService;
+	private TExamineController tExamineController;
 
 
 	@Test
@@ -39,11 +36,7 @@ public class OaSystemApplicationTests {
 		//List<User> userList = userMapper.selectList(null);
 		//Assert.assertEquals(5, userList.size());
 		//userList.forEach(System.out::println);
-		List<TExamineLeave> examineBaseVOList = tExamineLeaveService.pullDingTalkLeaveData();
-		for(TExamineLeave tExamineLeave : examineBaseVOList){
-			tExamineLeaveService.save(tExamineLeave);
-		}
-
+		tExamineController.pullDingTalkExamineData(ExamineTypeEnum.LEAVE.getValue());
 	}
 
 

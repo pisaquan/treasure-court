@@ -2,6 +2,7 @@ package com.sancai.oasystem.dao;
 
 import com.sancai.oasystem.bean.TExamineHoliday;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import org.springframework.stereotype.Repository;
 
 /**
  * <p>

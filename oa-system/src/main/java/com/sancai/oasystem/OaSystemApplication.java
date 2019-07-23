@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableTransactionManagement
 @ComponentScan(basePackages = {
 		"com.sancai.oasystem.controller",
+		"com.sancai.oasystem.bean",
 		"com.sancai.oasystem.service"})
 @MapperScan("com.sancai.oasystem.dao")
 @SpringBootApplication

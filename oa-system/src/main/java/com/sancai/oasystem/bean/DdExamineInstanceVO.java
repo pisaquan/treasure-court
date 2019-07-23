@@ -14,7 +14,7 @@ import java.io.Serializable;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-public class DdExamineInstanceVO  extends OapiProcessinstanceGetResponse.ProcessInstanceTopVo implements Serializable{
+public class DdExamineInstanceVO implements Serializable{
 
     private static final long serialVersionUID = -7935915799246008978L;
 

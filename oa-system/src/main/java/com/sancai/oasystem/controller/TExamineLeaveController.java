@@ -1,16 +1,9 @@
 package com.sancai.oasystem.controller;
 
 
-import com.baomidou.mybatisplus.extension.api.R;
-import com.sancai.oasystem.bean.ExamineBaseVO;
 import com.sancai.oasystem.bean.TExamineLeave;
-import com.sancai.oasystem.service.IExamineCommonService;
 import com.sancai.oasystem.service.TExamineLeaveService;
-import com.sancai.oasystem.service.impl.ExamineCommonServiceImpl;
-import com.taobao.api.internal.toplink.embedded.websocket.exception.ErrorCode;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -36,6 +29,6 @@ public class TExamineLeaveController {
     //@GetMapping("/api")
     //public void testError() {
     //    List<TExamineLeave> examineBaseList = tExamineLeaveService.pullDingTalkLeaveData();
-    //    //tExamineLeaveService.saveBatch(examineBaseList);
+    //    tExamineLeaveService.saveBatch(examineBaseList);
     //}
 }

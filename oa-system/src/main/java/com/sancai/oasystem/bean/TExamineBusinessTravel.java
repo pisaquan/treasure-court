@@ -16,7 +16,7 @@ import lombok.experimental.Accessors;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-public class TExamineBusinessTravel extends ExamineBaseVO implements Serializable {
+public class TExamineBusinessTravel implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
