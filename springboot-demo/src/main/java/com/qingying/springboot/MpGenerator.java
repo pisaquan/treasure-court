@@ -37,7 +37,7 @@ public class MpGenerator {
         gc.setAuthor(rb.getString("author"));
         gc.setMapperName("%sMapper");
         gc.setXmlName("%sMapper");
-        gc.setServiceName("%sService");
+        gc.setServiceName("I%sService");
         gc.setServiceImplName("%sServiceImpl");
         gc.setControllerName("%sController");
         mpg.setGlobalConfig(gc);
@@ -57,8 +57,8 @@ public class MpGenerator {
         pc.setController("controller" );
         pc.setService("service" );
         pc.setServiceImpl("service"  + ".impl");
-        pc.setEntity("bean" );
-        pc.setMapper("dao");
+        pc.setEntity("entity" );
+        pc.setMapper("mapper");
         mpg.setPackageInfo(pc);
 
         // 自定义配置
@@ -73,7 +73,7 @@ public class MpGenerator {
             @Override
             public String outputFile(TableInfo tableInfo) {
                 // 自定义输入文件名称
-                return rb.getString("OutputDirXml") + "/mapper/"  + "/" + tableInfo.getEntityName() + StringPool.DOT_XML;
+                return rb.getString("OutputDirXml") + "/mapping/"  + "/" + tableInfo.getEntityName()+ "Mapping" + StringPool.DOT_XML;
             }
         });
         cfg.setFileOutConfigList(focList);
@@ -85,6 +85,7 @@ public class MpGenerator {
         strategy.setNaming(NamingStrategy.underline_to_camel);
         strategy.setColumnNaming(NamingStrategy.underline_to_camel);
         strategy.setEntityLombokModel(true);
+        strategy.setTablePrefix("t_");
         strategy.setInclude(new String[]{rb.getString("tableName")});
         mpg.setStrategy(strategy);
         mpg.setTemplateEngine(new FreemarkerTemplateEngine());

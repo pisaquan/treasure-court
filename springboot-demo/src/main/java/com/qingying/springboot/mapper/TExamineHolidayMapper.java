@@ -1,7 +1,7 @@
-package com.qingying.springboot.dao;
+package com.qingying.springboot.mapper;
 
-import com.qingying.springboot.bean.TExamineHoliday;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.qingying.springboot.bean.TExamineHoliday;
 
 /**
  * <p>

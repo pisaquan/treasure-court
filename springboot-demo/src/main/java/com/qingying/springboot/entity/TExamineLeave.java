@@ -1,9 +1,10 @@
-package com.qingying.springboot.bean;
+package com.qingying.springboot.entity;
 
-import java.io.Serializable;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+
+import java.io.Serializable;
 
 /**
  * <p>
