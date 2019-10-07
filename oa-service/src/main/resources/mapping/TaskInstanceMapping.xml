@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sancai.oa.quartz.mapper.TaskInstanceMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.sancai.oa.quartz.entity.TaskInstance">
+        <id column="id" property="id" />
+        <result column="task_template_id" property="taskTemplateId" />
+        <result column="task_name" property="taskName" />
+        <result column="status" property="status" />
+        <result column="retry_time" property="retryTime" />
+        <result column="fail_reason" property="failReason" />
+        <result column="params" property="params" />
+        <result column="last_excute_time" property="lastExcuteTime" />
+        <result column="success_time" property="successTime" />
+        <result column="create_time" property="createTime" />
+        <result column="modify_time" property="modifyTime" />
+        <result column="deleted" property="deleted" />
+        <result column="company_id" property="companyId" />
+        <result column="type" property="type" />
+        <result column="manual_retry_time" property="manualRetryTime" />
+        <result column="start_time" property="startTime" />
+        <result column="end_time" property="endTime" />
+    </resultMap>
+
+    <resultMap id="TaskInstanceListMap" type="java.util.Map">
+        <id column="id" property="id" />
+        <result column="task_template_id" property="task_template_id" />
+        <result column="task_name" property="task_name" />
+        <result column="status" property="status" />
+        <result column="retry_time" property="retry_time" />
+        <result column="create_time" property="create_time" />
+        <result column="last_excute_time" property="last_excute_time" />
+        <result column="success_time" property="success_time" />
+        <result column="task_key" property="task_key" />
+        <result column="type" property="task_type" />
+        <result column="manual_retry_time" property="manual_retry_time" />
+        <result column="start_time" property="start_time" />
+        <result column="end_time" property="end_time" />
+    </resultMap>
+    <resultMap id="TaskInstanceDetailMap" type="java.util.Map">
+        <id column="id" property="id" />
+        <result column="task_template_name" property="task_template_name" />
+        <result column="task_name" property="task_name" />
+        <result column="status" property="status" />
+        <result column="retry_time" property="retry_time" />
+        <result column="create_time" property="create_time" />
+        <result column="last_excute_time" property="last_excute_time" />
+        <result column="success_time" property="success_time" />
+        <result column="fail_reason" property="fail_reason" />
+        <result column="params" property="params" />
+        <result column="task_key" property="task_key" />
+        <result column="type" property="task_type" />
+        <result column="manual_retry_time" property="manual_retry_time" />
+    </resultMap>
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, task_template_id, task_name, status, retry_time, fail_reason, params, last_excute_time, success_time, create_time, modify_time, deleted,company_id,type
+    </sql>
+
+    <!-- 一个公司的一个模板的最后一个成功的任务 -->
+    <select id="getLastSuccessTaskInstance" parameterType="map" resultType="com.sancai.oa.quartz.entity.TaskInstance">
+        select <include refid="Base_Column_List"/>
+         from t_task_instance where task_template_id = #{taskTemplateId} and company_id = #{companyId} and deleted = 0 and success_time is not null  order by success_time desc limit 1
+    </select>
+    <select id="getTaskInstanceList" resultMap="TaskInstanceListMap" resultType="com.sancai.oa.quartz.entity.TaskInstanceDTO">
+
+        SELECT
+            ti.ID,
+            ti.task_name,
+            tt.name task_template_name,
+            ti.status,
+            ti.retry_time,
+            COALESCE(ti.create_time,0) create_time,
+            COALESCE(ti.last_excute_time,0) last_excute_time ,
+            COALESCE(success_time,0) success_time,
+            tt.task_key,
+            tt.type,
+            manual_retry_time,
+            COALESCE(start_time,0)  start_time,
+            COALESCE(end_time,0) end_time
+            FROM
+            t_task_instance ti
+        JOIN t_task_template tt ON tt.ID = ti.task_template_id
+            where company_id = #{companyId} and ti.deleted = 0
+            <if test="taskTemplateId != null and taskTemplateId !=''">
+                and task_template_id = #{taskTemplateId}
+            </if>
+            <if test="taskType != null and taskType !=''">
+                and tt.type = #{taskType}
+            </if>
+            <if test="taskKey != null and taskKey !=''">
+                and tt.task_key = #{taskKey}
+            </if>
+            <if test="startTime != null and startTime !=''">
+                and  <![CDATA[last_excute_time >= #{startTime}]]>
+            </if>
+            <if test="endTime != null and endTime !=''">
+                and <![CDATA[last_excute_time <= #{endTime}]]>
+            </if>
+            <if test="status != null and status !=''">
+                and status = #{status}
+            </if>
+        order by to_char(TO_TIMESTAMP(last_excute_time/1000),'YYYY-MM-DD') DESC,last_excute_time DESC
+    </select>
+
+    <select id="getTaskInstanceDetail" resultMap="TaskInstanceDetailMap" parameterType="java.lang.String">
+       SELECT
+            ti.ID,
+            tt.NAME task_template_name,
+            ti.task_name,
+            ti.status,
+            ti.retry_time,
+            ti.create_time,
+            COALESCE(ti.last_excute_time,0) last_excute_time,
+            COALESCE(success_time,0) success_time,
+            COALESCE(fail_reason,'') fail_reason,
+            COALESCE(params,'') params,
+            tt.task_key,
+            tt.type,
+            manual_retry_time
+        FROM
+            t_task_instance ti
+            JOIN t_task_template tt ON tt.ID = ti.task_template_id
+              where ti.id = #{id} and ti.deleted = 0
+    </select>
+
+    <!-- 一个公司的一个模板的指定时间的最后一个成功的任务 -->
+    <select id="getScheduleTimeLastSuccessTaskInstance" parameterType="map" resultType="com.sancai.oa.quartz.entity.TaskInstance">
+        select <include refid="Base_Column_List"/>
+        from t_task_instance
+        where task_template_id = #{taskTemplateId}
+        and company_id = #{companyId}
+        and deleted = 0
+        and create_time <![CDATA[ < ]]> #{createTime}
+        and success_time is not null
+        order by success_time
+        desc limit 1
+    </select>
+    <!-- 查询表中指定公司的指定模板类型中是否已经存在该时间段的数据 -->
+    <select id="getInstanceListByTime" parameterType="map" resultType="com.sancai.oa.quartz.entity.TaskInstance">
+        select <include refid="Base_Column_List"/>
+        from t_task_instance
+        where company_id = #{companyId}
+        and type = #{key}
+        and  not ( (<![CDATA[start_time >= #{endTime}]]>) or (<![CDATA[end_time <= #{startTime} ]]>) )
+        and deleted = 0
+    </select>
+
+    <delete id="clearDetails">
+        delete from t_qrtz_job_details ;
+    </delete>
+    <delete id="clearTriggers">
+        delete from t_qrtz_triggers ;
+    </delete>
+    <delete id="clearFiredTriggers">
+        delete from t_qrtz_fired_triggers ;
+    </delete>
+    <delete id="clearCronTriggers">
+        delete from t_qrtz_cron_triggers ;
+    </delete>
+</mapper>

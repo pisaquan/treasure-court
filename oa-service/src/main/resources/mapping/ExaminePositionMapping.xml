@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sancai.oa.examine.mapper.ExaminePositionMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.sancai.oa.examine.entity.ExaminePosition">
+        <id column="id" property="id" />
+        <result column="user_id" property="userId" />
+        <result column="process_code" property="processCode" />
+        <result column="process_instance_id" property="processInstanceId" />
+        <result column="process_title" property="processTitle" />
+        <result column="process_create_time" property="processCreateTime" />
+        <result column="process_finish_time" property="processFinishTime" />
+        <result column="process_status" property="processStatus" />
+        <result column="process_result" property="processResult" />
+        <result column="form_value_company" property="formValueCompany" />
+        <result column="form_value_type" property="formValueType" />
+        <result column="form_value_user_id" property="formValueUserId" />
+        <result column="form_value_user_name" property="formValueUserName" />
+        <result column="form_value_rule" property="formValueRule" />
+        <result column="form_value_score" property="formValueScore" />
+        <result column="form_value_reason" property="formValueReason" />
+        <result column="create_time" property="createTime" />
+        <result column="modify_time" property="modifyTime" />
+        <result column="deleted" property="deleted" />
+        <result column="task_instance_id" property="taskInstanceId" />
+        <result column="is_inservice" property="isInservice" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, user_id, user_name, company_id, process_code, process_instance_id, process_title, process_create_time, process_finish_time, process_status, process_result, form_value_company, form_value_type, form_value_user_id, form_value_user_name, form_value_rule, form_value_score, form_value_reason, create_time, modify_time, deleted, task_instance_id,is_inservice
+    </sql>
+
+    <resultMap id="DTOResultMap" type="com.sancai.oa.examine.entity.ActionPositionDataDTO">
+        <id column="id" property="id"/>
+        <result column="process_create_time" property="month"/>
+        <result column="user_name" property="createExamineUserName"/>
+        <result column="dept_ids" property="deptId"/>
+        <result column="form_value_type" property="type"/>
+        <result column="form_value_score" property="score"/>
+        <result column="form_value_reason" property="reason"/>
+        <result column="form_value_user_name" property="name"/>
+        <result column="form_value_user_id" property="formUserId"/>
+        <result column="process_create_time" property="processCreateTime"/>
+        <result column="is_inservice" property="isInservice"/>
+    </resultMap>
+
+
+    <!-- 岗位考核列表查询 -->
+    <select id="getExamineListByPage" parameterType="com.sancai.oa.examine.entity.RequestEntity" resultMap="DTOResultMap">
+        WITH
+        s1 as
+        (select id,process_create_time,user_name,form_value_user_id,form_value_type,form_value_score,form_value_reason,form_value_user_name,is_inservice from t_examine_position where company_id = #{companyId} and deleted = 0 and process_status='COMPLETED' and process_result='agree'
+        <if test="deptList != null and deptList.size()>0  ">
+            and id in (SELECT
+            examine_instance_id FROM t_examine_department WHERE deleted = 0 and dept_id in
+            <foreach collection="deptList" item="id" index="index" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+            )
+        </if>
+        ),
+        s2 as
+        (select examine_instance_id,string_agg(cast(dept_id as VARCHAR),',' order by dept_id desc  ) dept_ids from t_examine_department where deleted = 0 GROUP BY examine_instance_id)
+        select s1.id,s1.process_create_time,s1.user_name,s1.form_value_user_id,s1.form_value_type,s1.form_value_score,s1.form_value_reason,s1.form_value_user_name,s1.is_inservice,s2.dept_ids from s1 LEFT JOIN s2 ON s1.id=s2.examine_instance_id
+        where 1 = 1
+        <if test="name != null and name !=''">
+            and form_value_user_name = #{name}
+        </if>
+        <if test="startTime != null and startTime !=''">
+            and  <![CDATA[process_create_time >= #{startTime}]]>
+        </if>
+        <if test="endTime != null and endTime !=''">
+            and  <![CDATA[process_create_time <= #{endTime}]]>
+        </if>
+        <if test="isInservice != null and isInservice != ''">
+            and is_inservice = #{isInservice}
+        </if>
+        order by to_char(TO_TIMESTAMP(process_create_time/1000),'YYYY-MM-DD') DESC,dept_ids DESC,to_char(TO_TIMESTAMP(process_create_time/1000),'hh24:mi:ss') DESC
+    </select>
+    <!--记录对应部门数据-->
+    <select id="positionRecordDeptIdList" resultType="com.sancai.oa.report.entity.modify.DataMap" >
+    select
+        tsr.id ,
+        tsr.user_id ,
+        tsr.user_name,
+        tsr.process_instance_id ,
+        COALESCE(tsd.dept_ids,'') as "deptList",
+        tsr.company_id ,
+        tsr.task_instance_id,
+        tsr.form_value_user_id
+        FROM
+        t_examine_position tsr
+        LEFT JOIN (
+        SELECT
+        tsd2.examine_instance_id,
+        string_agg (CAST(tsd2.dept_id AS VARCHAR), ',') dept_ids
+        FROM
+        t_examine_department tsd2
+        WHERE tsd2.deleted = 0
+        GROUP BY
+        tsd2.examine_instance_id
+        ) tsd ON tsr.id = tsd.examine_instance_id
+        WHERE
+         tsr.company_id =  #{companyId}
+        and tsr.task_instance_id =  #{taskInstanceId}
+        and tsr.deleted = 0
+        AND tsd.dept_ids !=''
+        AND tsr.form_value_user_id   !=''
+    </select>
+</mapper>

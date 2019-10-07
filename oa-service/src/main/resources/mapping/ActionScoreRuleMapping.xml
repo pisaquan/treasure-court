@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sancai.oa.score.mapper.ActionScoreRuleMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.sancai.oa.score.entity.ActionScoreRule">
+        <id column="id" property="id"/>
+        <result column="type" property="type"/>
+        <result column="score" property="score"/>
+        <result column="key" property="key"/>
+        <result column="name" property="name"/>
+        <result column="create_time" property="createTime"/>
+        <result column="modify_time" property="modifyTime"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, type, score, key, name, create_time, modify_time, deleted
+    </sql>
+
+    <!--查询积分规则列表一条记录的对应Map-->
+    <resultMap id="ListResultMap" type="com.sancai.oa.score.entity.ActionScoreRuleDTO">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="type" property="type"/>
+        <result column="key" property="ruleKey"/>
+        <result column="score" property="score"/>
+    </resultMap>
+    <!--查询积分规则列表-->
+    <select id="getScoreRuleList" resultMap="ListResultMap">
+        select id,name,type,key,score from t_action_score_rule where deleted = 0 ORDER BY score
+    </select>
+    <!--根据规则key获取一条规则-->
+    <select id="getScoreRuleByKey" parameterType="java.lang.String" resultMap="ListResultMap">
+        select id,name,type,key,score from t_action_score_rule where key =#{key} and deleted = 0
+    </select>
+
+</mapper>

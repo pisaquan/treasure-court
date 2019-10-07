@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.sancai.oa.clockin.mapper.ClockinRecordMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.sancai.oa.clockin.entity.ClockinRecord">
+        <id column="id" property="id" />
+        <result column="user_id" property="userId" />
+        <result column="user_name" property="userName" />
+        <result column="company_id" property="companyId" />
+        <result column="month" property="month" />
+        <result column="content" property="content" />
+        <result column="create_time" property="createTime" />
+        <result column="modify_time" property="modifyTime" />
+        <result column="deleted" property="deleted" />
+        <result column="task_instance_id" property="taskInstanceId" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+
+        id, user_id, user_name, company_id, month, content, create_time, modify_time, deleted, taskInstanceId
+    </sql>
+
+
+    <sql id="Base_ids">
+   	    tcr. ID AS "id",
+        tcr.user_name AS "name",
+        tcr.MONTH AS "month",
+        tcr.dept_ids AS "dept_ids",
+        tcr.dept_ids AS "dept_id"
+    </sql>
+    <!-- 公司打卡记录列表-->
+    <select id="clockinRecordList" resultType="com.sancai.oa.report.entity.modify.DataMap" parameterType="com.sancai.oa.clockin.entity.ClockinRecordDTO">
+        SELECT DISTINCT
+        <include refid="Base_ids"/>
+        FROM
+        t_clockin_department tcd
+        LEFT JOIN (
+        SELECT
+        tcrs.ID,
+        tcrs.user_name ,
+        tcrs.company_id,
+        tcrs.deleted,
+        tcrs.MONTH,
+        tcd.dept_ids
+        FROM  t_clockin_record tcrs
+        LEFT JOIN (
+        SELECT
+        tcds.clockin_record_id,
+        string_agg (CAST (tcds.dept_id AS VARCHAR),',') dept_ids
+        FROM
+        t_clockin_department tcds
+        WHERE tcds.deleted = 0
+        GROUP BY
+        tcds.clockin_record_id
+        ) tcd ON tcrs. ID = tcd.clockin_record_id
+        ) tcr ON tcr. ID = tcd.clockin_record_id
+        WHERE
+        tcr.company_id = #{companyId}
+        AND tcr.deleted = 0
+        AND tcr.dept_ids != ''
+        <if test="name!=null  and name!='' ">
+            and tcr.user_name  = #{name}
+        </if>
+        <if test="deptId != null and deptId !=''">
+            and dept_id in
+            <foreach collection="deptList" item="id" index="index" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+        <if test="month!=null and month!=''">
+            AND tcr.month = #{month}
+        </if>
+        ORDER BY tcr.month DESC ,dept_ids desc
+    </select>
+    <!-- 公司打卡记录详情 -->
+    <sql id="base_clockin_by_id">
+   	    tcr.id AS "id",
+        tcr.user_name AS "name",
+        tcr.month AS "month",
+        tcr.content as "content"
+    </sql>
+    <select id="clockinRecordDetailById" resultType="com.sancai.oa.clockin.entity.ClockinRecordDTO"  parameterType="java.lang.String">
+    select
+    <include refid="base_clockin_by_id"/>
+    FROM
+    t_clockin_record tcr
+    WHERE tcr.deleted = 0
+    and tcr.id = #{id}
+    </select>
+
+
+    <!--  按任务实例id删除-->
+    <update id="deleteByTaskInstanceId" parameterType="java.lang.String">
+        update t_clockin_record
+        <set>
+            modify_time= floor(extract(epoch from now())*1000),
+            deleted = 1
+        </set>
+        where task_instance_id = #{value} and deleted = 0
+    </update>
+
+</mapper>

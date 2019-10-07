@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sancai.oa.clockin.mapper.ClockinRecordMergeMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.sancai.oa.clockin.entity.ClockinRecordMerge">
+        <id column="id" property="id" />
+        <result column="clockin_id" property="clockinId" />
+        <result column="content" property="content" />
+        <result column="create_time" property="createTime" />
+        <result column="modify_time" property="modifyTime" />
+        <result column="deleted" property="deleted" />
+        <result column="task_instance_id" property="taskInstanceId" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, clockin_id, content, create_time, modify_time, deleted,task_instance_id
+    </sql>
+
+    <select id="selectClockinRecordMergeDTO" parameterType="map" resultType="com.sancai.oa.clockin.entity.ClockinRecordMergeDTO">
+        select r.user_id as userId,r.user_name as userName,r.company_id as companyId,r.month as statisticalMonth,m.content as content
+        from t_clockin_record r
+        left join t_clockin_record_merge m
+        on r.id = m.clockin_id
+        where r.company_id = #{companyId}
+        and r.month = #{month}
+        and r.deleted = 0
+        and m.deleted = 0
+        order by r.create_time desc,r.id desc
+    </select>
+
+    <select id="clockinRecordMergeByUserId" parameterType="map" resultType="com.sancai.oa.clockin.entity.ClockinRecordMergeDTO">
+        select r.user_id as userId,r.user_name as userName,r.company_id as companyId,r.month as statisticalMonth,
+        m.content as content,m.id as mergeRecordId
+        from t_clockin_record_merge m
+        left join t_clockin_record r
+        on m.clockin_id = r.id
+        where r.company_id = #{companyId}
+        and r.user_id = #{userId}
+        and r.month = #{month}
+        and r.deleted = 0
+        and m.deleted = 0
+    </select>
+
+
+    <!--修改content后，更新t_clockin_record_merge表-->
+    <update id="updateContentByClockinId" parameterType="com.sancai.oa.clockin.entity.ClockinRecordMerge">
+       update t_clockin_record_merge set content= #{content} where clockin_id  = #{clockinId} and deleted = 0
+    </update>
+
+
+    <!--考勤复合结果实体类-->
+    <resultMap id="ComplexResultList" type="com.sancai.oa.clockin.entity.AttendanceComplexResultDTO">
+        <id column="id" property="id"/>
+        <result column="user_name" property="name"/>
+        <result column="user_id" property="userId"/>
+        <result column="dept_id" property="deptId"/>
+        <result column="content" property="content"/>
+        <result column="not_signed_count" property="notSignedCount"/>
+        <result column="sick_leave_days" property="sickLeaveDays"/>
+        <result column="personal_leave_days" property="personalLeaveDays"/>
+        <result column="childbirth_leave_days" property="childbirthLeaveDays"/>
+        <result column="absenteeism_days" property="absenteeismDays"/>
+        <result column="holiday_days" property="holidayDays"/>
+        <result column="attendance_days" property="attendanceDays"/>
+        <result column="salary_days" property="salaryDays"/>
+        <result column="late_count" property="lateCount"/>
+        <result column="early_count" property="earlyCount"/>
+        <result column="marriage_leave_days" property="marriageLeaveDays"/>
+        <result column="funeral_leave_days" property="funeralLeaveDays"/>
+        <result column="paternity_leave_days" property="paternityLeaveDays"/>
+    </resultMap>
+
+    <!--根据条件查询筛选考勤符合结果-->
+    <select id="queryAttendanceComplexResult" parameterType="com.sancai.oa.clockin.entity.DownloadQueryConditionDTO"
+            resultMap="ComplexResultList">
+    with
+      t1 as
+    (select id,user_name,paternity_leave_days, not_signed_count,absenteeism_days,attendance_days,childbirth_leave_days,salary_days,sick_leave_days,marriage_leave_days,funeral_leave_days,
+    personal_leave_days,holiday_days,early_count,late_count,s.dept_id,user_id from t_attendance_record r, (select attendance_record_id,dept_id from t_attendance_record_department where deleted = 0
+        <if test="deptList != null and deptList.size()>0  ">
+            and dept_id in
+            <foreach collection="deptList" item="id" index="index" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+        ) s
+    where r.id = s.attendance_record_id and r.month =#{month} and  r.company_id =#{companyId} and r.deleted = 0),
+       t2 as
+    (select content,user_id from t_clockin_record_merge m INNER JOIN (select id,user_id from t_clockin_record where month =#{month} and  company_id =#{companyId} and deleted = 0
+        <if test="userName != null and userName !=''">
+            and user_name = #{userName}
+        </if>
+        ) n on m.clockin_id = n.id and m.deleted = 0)
+    select t1.id, t1.user_name,t1.paternity_leave_days,t1.not_signed_count,t1.absenteeism_days,t1.attendance_days,t1.childbirth_leave_days,t1.salary_days,t1.sick_leave_days,t1.personal_leave_days,t1.holiday_days,t1.marriage_leave_days,t1.funeral_leave_days,t1.early_count,t1.late_count,t1.dept_id,t1.user_id,t2.content from t1 INNER JOIN t2 on t1.user_id = t2.user_id
+    </select>
+
+</mapper>

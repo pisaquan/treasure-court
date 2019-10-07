@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sancai.oa.score.mapper.ActionScoreRecordMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.sancai.oa.score.entity.ActionScoreRecord">
+        <id column="id" property="id" />
+        <result column="user_id" property="userId" />
+        <result column="user_name" property="userName" />
+        <result column="company_id" property="companyId" />
+        <result column="source" property="source" />
+        <result column="target_id" property="targetId" />
+        <result column="type" property="type" />
+        <result column="score" property="score" />
+        <result column="remark" property="remark" />
+        <result column="create_time" property="createTime" />
+        <result column="modify_time" property="modifyTime" />
+        <result column="deleted" property="deleted" />
+        <result column="score_record_time" property="scoreRecordTime" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, user_id, user_name, company_id, source, target_id, type, score, remark, create_time, modify_time, deleted,score_record_time
+    </sql>
+
+
+    <!--积分变动列表返回前端映射-->
+    <resultMap id="ScoreRecordResultMap" type="com.sancai.oa.score.entity.ScoreRecordListDTO">
+        <id column="id" property="id"/>
+        <result column="dept_ids" property="deptId"/>
+        <result column="user_name" property="name"/>
+        <result column="source" property="source"/>
+        <result column="type" property="type"/>
+        <result column="score" property="score"/>
+        <result column="remark" property="remark"/>
+        <result column="user_id" property="userId"/>
+        <result column="score_record_time" property="scoreRecordTime"/>
+    </resultMap>
+    <!--查询积分变动列表-->
+    <select id="getScoreRecordList" parameterType="com.sancai.oa.score.entity.ScoreRecordRequestDTO" resultMap="ScoreRecordResultMap">
+        SELECT
+        r.id,
+        s.dept_ids,
+        r.score_record_time,
+        r.modify_time,
+        r.user_name,
+        r.company_id,
+        r.source,
+        r.score,
+        r.remark,
+        r.type,
+        r.user_id
+        FROM
+        t_action_score_record r
+        LEFT JOIN
+        (
+        SELECT
+        score_record_id,
+        string_agg ( CAST ( dept_id AS VARCHAR ), ',' order by dept_id desc) dept_ids
+        FROM
+        t_action_score_department
+        WHERE
+        deleted = 0
+        <if test="deptList != null and deptList.size()>0  ">
+            AND dept_id IN
+            <foreach collection="deptList" item="id" index="index" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+        GROUP BY
+        score_record_id
+        ) s
+        ON
+        r.id = s.score_record_id
+        WHERE r.company_id = #{companyId}
+        AND r.deleted = 0
+
+		<if test="deptList != null and deptList.size()>0  ">
+            and s.score_record_id in (select DISTINCT score_record_id FROM t_action_score_department  WHERE deleted = 0 AND dept_id IN
+            <foreach collection="deptList" item="id" index="index" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+            )
+        </if>
+        <if test="userId != null and userId !=''">
+            and user_id = #{userId}
+        </if>
+        <if test="name != null and name !=''">
+            and user_name = #{name}
+        </if>
+        <if test="endTime != null and endTime !=''">
+            and  <![CDATA[score_record_time <= #{endTime}]]>
+        </if>
+        <if test="startTime != null and startTime !=''">
+            and <![CDATA[score_record_time >= #{startTime}]]>
+        </if>
+        <if test="type != null and type !=''">
+            and type = #{type}
+        </if>
+        <if test="source != null and source !=''">
+            and source = #{source}
+        </if>
+        order BY to_char(TO_TIMESTAMP(score_record_time/1000),'YYYY-MM-DD') DESC ,dept_ids  DESC,to_char(TO_TIMESTAMP(score_record_time/1000),'hh24:mi:ss') DESC
+    </select>
+
+
+
+    <!--根据user_id查询一名员工的目前累计的或指定一个月的积分总和-->
+    <select id="queryUserScore" parameterType="com.sancai.oa.score.entity.ActionScoreRecordDTO" resultType="com.sancai.oa.score.entity.ActionUserScoreDTO">
+        select
+        t1.user_id,
+        t2.name as user_name,
+        t1.score
+        from
+        (
+        select
+        s.user_id,
+        sum(s.score) score
+        from (
+        select
+        t.user_id,
+        case when t.type = 'ADD' then t.score
+        when t.type = 'SUBTRACT' then 0-t.score
+        end score
+        from t_action_score_record t
+        where t.user_id = #{userId}
+        and t.company_id = #{companyId}
+        and t.deleted = 0
+        <if test="endTime != null and endTime !=''">
+            and  <![CDATA[score_record_time <= #{endTime}]]>
+        </if>
+        <if test="startTime != null and startTime !=''">
+            and <![CDATA[score_record_time >= #{startTime}]]>
+        </if>
+        ) s group by s.user_id
+        ) t1 left join (
+        select DISTINCT user_id,name
+        from t_user
+        where user_id =#{userId}
+        and company_id = #{companyId}
+        and deleted = 0
+        ) t2 on t1.user_id = t2.user_id
+    </select>
+
+    <!--根据deptId查询部门下的员工积分列表-->
+    <select id="getDeptScoreList" parameterType="java.util.List" resultType="java.util.Map">
+        with
+        s1 as
+        (select  user_id,type,score from t_action_score_record where id in (SELECT DISTINCT score_record_id FROM t_action_score_department WHERE deleted = 0
+        AND dept_id in
+        <foreach collection="deptList" item="id" index="index" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+        ) and deleted = 0)
+        select s1.user_id,COALESCE(total_score,0) as total_score ,name from (select DISTINCT s.user_id,s.name from  (select ud.dept_id,user_id, name from t_user u,t_user_department ud where u.id = ud.u_id and u.deleted = 0 and u.status = 0 and ud.deleted = 0)  s where
+        s.dept_id in
+          <foreach collection="deptList" item="id" index="index" open="(" close=")" separator=",">
+              cast(#{id} as varchar )
+          </foreach>
+        ) s1 left join  (select user_id,sum(score) total_score from ( select user_id,case when type = 'ADD' then score when type='SUBTRACT' then 0-score end score  from s1) s GROUP BY user_id) s on  s1.user_id = s.user_id  ORDER BY user_id DESC
+    </select>
+
+    <!--根据ruleKey查询对应的score-->
+    <select id="getScoreByRuleKey" parameterType="java.lang.String" resultType="com.sancai.oa.score.entity.ActionScoreRecord">
+        select id,name,type,key,score from t_action_score_rule where key = #{rulekey} and deleted = 0
+    </select>
+
+
+    <select id="reportisWarnedCount" parameterType="map" resultType="java.lang.Integer">
+        select count(1) from t_action_score_record sc
+        LEFT JOIN t_report_record r
+        ON r.id = sc.target_id
+        WHERE sc.user_id = #{userId}
+        and sc.company_id = #{companyId}
+        and sc.source = #{enumScoreRule}
+        and sc.deleted = 0
+        and r.deleted = 0
+        and <![CDATA[r.report_time >= #{startTime}]]>
+        and <![CDATA[r.report_time <= #{endTime}]]>
+    </select>
+
+
+    <!--根据公司id查询有效的日报积分记录数据和对应日报提交时间-->
+    <select id="getScoreRecordListByCompanyId" parameterType="java.lang.String" resultType="com.sancai.oa.score.entity.ActionScoreRecord">
+       SELECT
+            tasr.user_id,
+            tasr."source",
+            tasr.company_id,
+            tasr."id",
+            tasr.target_id,
+            tasr.user_name,
+            trr.report_time as "create_time"
+        FROM
+            t_action_score_record tasr
+        LEFT JOIN t_report_record trr ON trr.id = tasr.target_id
+        WHERE tasr.deleted = 0
+        and tasr.company_id = #{companyId}
+        and trr.deleted = 0
+    </select>
+    <!--根据公司id查询有效的日报积分记录数据和对应日报提交时间-->
+    <select id="getScoreRecordListByUserId" parameterType="com.sancai.oa.score.entity.ActionScoreRecord" resultType="com.sancai.oa.score.entity.ActionScoreRecord">
+       SELECT
+            tasr.user_id,
+            tasr."source",
+            tasr.company_id,
+            tasr."id",
+            tasr.target_id,
+            tasr.user_name,
+            trr.report_time as "create_time"
+        FROM
+            t_action_score_record tasr
+        LEFT JOIN t_report_record trr ON trr.id = tasr.target_id
+        WHERE tasr.deleted = 0
+        and tasr.company_id = #{companyId}
+        and tasr.user_id = #{userId}
+        and tasr.source = #{source}
+        and trr.deleted = 0
+    </select>
+
+</mapper>

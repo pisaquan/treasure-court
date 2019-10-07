@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sancai.oa.report.mapper.ReportTemplateMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.sancai.oa.report.entity.ReportTemplate">
+        <id column="id" property="id" />
+        <result column="company_id" property="companyId" />
+        <result column="code" property="code" />
+        <result column="name" property="name" />
+        <result column="template_group" property="templateGroup" />
+        <result column="create_time" property="createTime" />
+        <result column="modify_time" property="modifyTime" />
+        <result column="deleted" property="deleted" />
+        <result column="status" property="status" />
+        <result column="begin_time" property="beginTime" />
+        <result column="finish_time" property="finishTime" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, company_id, code, name, template_group, create_time, modify_time, deleted, status, begin_time, finish_time
+    </sql>
+
+</mapper>

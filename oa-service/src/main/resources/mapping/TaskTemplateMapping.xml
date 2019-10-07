@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sancai.oa.quartz.mapper.TaskTemplateMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.sancai.oa.quartz.entity.TaskTemplate">
+        <id column="id" property="id" />
+        <result column="name" property="name" />
+        <result column="type" property="type" />
+        <result column="task_key" property="taskKey" />
+        <result column="classstr" property="classstr" />
+        <result column="methodstr" property="methodstr" />
+        <result column="next_task_template_id" property="nextTaskTemplateId" />
+        <result column="frequency" property="frequency" />
+        <result column="create_time" property="createTime" />
+        <result column="modify_time" property="modifyTime" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <resultMap id="taskTemplateNameMap" type="java.util.Map">
+        <id column="id" property="id" />
+        <result column="name" property="name" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, name, type, task_key, classstr, methodstr, next_task_template_id, frequency, create_time, modify_time, deleted
+    </sql>
+    <select id="getTaskTemplateNameList" resultMap="taskTemplateNameMap" resultType="com.sancai.oa.quartz.entity.TaskInstanceDTO">
+      select id,name from t_task_template
+    </select>
+
+
+</mapper>

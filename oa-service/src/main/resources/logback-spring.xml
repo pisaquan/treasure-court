@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration xmlns="http://ch.qos.logback/xml/ns/logback"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xsi:schemaLocation="http://ch.qos.logback/xml/ns/logback http://git.sancaijia.com/scj/xml-schema/raw/master/logback.xsd
+ ">
+
+    <timestamp key="bySecond" datePattern="yyyyMMdd-HHmmss"/>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{180} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <property name="tomcat_test" value="/opt/soft/tomcat"/>
+    <property name="tomcat_demo" value="/opt/soft/tomcat-demo"/>
+    <property name="tomcat_prod" value="/opt/sancaijia/server/tomcat"/>
+
+    <appender name="ROLLING-PROD" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{180} - %msg%n</pattern>
+        </encoder>
+        <file>${tomcat_prod}/logs/backend.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${tomcat_prod}/logs/backend.%d{yyyy-MM-dd-HH}.%i.log</fileNamePattern>
+            <maxFileSize>200MB</maxFileSize>
+            <totalSizeCap>5GB</totalSizeCap>
+            <maxHistory>100</maxHistory>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+    </appender>
+
+    <appender name="ROLLING-TEST" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{180} - %msg%n</pattern>
+        </encoder>
+        <file>${tomcat_test}/logs/test_backend.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${tomcat_test}/logs/test_backend.%d{yyyy-MM-dd-HH}.%i.log</fileNamePattern>
+            <maxFileSize>100MB</maxFileSize>
+            <totalSizeCap>1GB</totalSizeCap>
+            <maxHistory>10</maxHistory>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+    </appender>
+
+    <appender name="ROLLING-DEMO" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{180} - %msg%n</pattern>
+        </encoder>
+        <file>${tomcat_demo}/logs/demo_backend.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${tomcat_demo}/logs/demo_backend.%d{yyyy-MM-dd-HH}.%i.log</fileNamePattern>
+            <maxFileSize>100MB</maxFileSize>
+            <totalSizeCap>1GB</totalSizeCap>
+            <maxHistory>10</maxHistory>
+            <cleanHistoryOnStart>true</cleanHistoryOnStart>
+        </rollingPolicy>
+    </appender>
+
+    <springProfile name="dev">
+        <root level="INFO">
+            <appender-ref ref="STDOUT"/>
+        </root>
+        <logger name="com.sancaijia" level="ERROR" additivity="false">
+            <appender-ref ref="STDOUT"/>
+        </logger>
+    </springProfile>
+
+    <springProfile name="demo">
+        <root level="INFO">
+            <appender-ref ref="ROLLING-DEMO"/>
+        </root>
+        <logger name="com.sancaijia" level="DEBUG" additivity="false">
+            <appender-ref ref="ROLLING-DEMO"/>
+        </logger>
+    </springProfile>
+
+
+    <springProfile name="test">
+        <root level="INFO">
+            <appender-ref ref="ROLLING-TEST"/>
+        </root>
+        <logger name="com.sancaijia" level="DEBUG" additivity="false">
+            <appender-ref ref="ROLLING-TEST"/>
+        </logger>
+    </springProfile>
+
+    <springProfile name="prod">
+        <root level="DEBUG">
+            <appender-ref ref="ROLLING-PROD"/>
+        </root>
+        <logger name="com.sancaijia" level="DEBUG" additivity="false">
+            <appender-ref ref="ROLLING-PROD"/>
+        </logger>
+    </springProfile>
+
+</configuration>

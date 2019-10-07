@@ -1,0 +1,164 @@
+
+server:
+  port: 18080
+  servlet:
+    context-path: /api
+
+
+spring:
+  devtools:
+    restart:
+      enabled: false
+  datasource:
+    username: oa_dev
+    password: oa123456
+    driver-class-name:  org.postgresql.Driver
+    type: com.alibaba.druid.pool.DruidDataSource
+    url: jdbc:postgresql://192.168.106.31:5432/scj_oa
+    # 下面为连接池的补充设置，应用到上面所有数据源中
+    # 初始化大小，最小，最大
+    initialSize: 50
+    minIdle: 50
+    maxActive: 100
+    # 配置获取连接等待超时的时间
+    maxWait: 60000
+    # 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒
+    timeBetweenEvictionRunsMillis: 60000
+    # 配置一个连接在池中最小生存的时间，单位是毫秒
+    minEvictableIdleTimeMillis: 300000
+    testWhileIdle: true
+    testOnBorrow: false
+    testOnReturn: false
+    validationQuery: select version()
+    # 打开PSCache，并且指定每个连接上PSCache的大小
+    poolPreparedStatements: true
+    maxPoolPreparedStatementPerConnectionSize: 20
+    # 配置监控统计拦截的filters，去掉后监控界面sql无法统计，'wall'用于防火墙，此处是filter修改的地方
+    filters: stat,wall,slf4j
+    # 通过connectProperties属性来打开mergeSql功能；慢SQL记录
+    connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+  redis:
+    host: 192.168.106.31
+    port: 16379
+    password:
+    database: 10
+    timeout: 300s
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+
+
+
+
+mybatis-plus:
+  mapper-locations: classpath:mapping/*Mapping.xml
+  type-aliases-package: com.sancai.oa.*.entity
+  global-config:
+    db-config:
+      id-type: none
+
+
+mapper:
+  mappers:
+  - tk.mybatis.mapper.common.Mapper
+  notEmpty: true
+
+#showSql
+logging:
+  level:
+    com:
+      example:
+        mapper : debug
+        
+#pagehelper        
+pagehelper:
+    helperDialect: postgresql
+    reasonable: false
+    supportMethodsArguments: true
+    params: count=countSql
+
+#dingding
+dingding:
+    token-url: https://oapi.dingtalk.com/gettoken
+    listschedule-url: https://oapi.dingtalk.com/topapi/attendance/listschedule
+    attendance-url: https://oapi.dingtalk.com/attendance/list
+    ##获取企业的日志模板
+    listTemplate-url: https://oapi.dingtalk.com/topapi/report/template/listbyuserid
+    ##获取子部门列表
+    listDepartment-url: https://oapi.dingtalk.com/department/list
+    ##获取子部门ID列表
+    listDepartmentIds-url: https://oapi.dingtalk.com/department/list_ids
+    ##获取部门用户userid列表
+    listGetDeptMember-url: https://oapi.dingtalk.com/user/getDeptMember
+    ##根据获取用户签到记录列表
+    listCheckinRecordMember-url: https://oapi.dingtalk.com/topapi/checkin/record/get
+    ##根据部门获取用户签到记录列表
+    listCheckinRecordDepartment-url: https://oapi.dingtalk.com/checkin/record
+    ##获取日志统计数据
+    reportStatistics-url: https://oapi.dingtalk.com/topapi/report/statistics
+    ##获取用户日志数据
+    reportList-url:  https://oapi.dingtalk.com/topapi/report/list
+    ##批量获取审批实例id
+    examineinstanlistids-url: https://oapi.dingtalk.com/topapi/processinstance/listids
+    ##获取审批实例详情
+    examineinstance-url: https://oapi.dingtalk.com/topapi/processinstance/get
+    ##获取用户详情
+    getuser-url: https://oapi.dingtalk.com/user/get
+    ##获取应用的可见范围
+    visibleScopes-url: https://oapi.dingtalk.com/microapp/visible_scopes
+    ##发送工作通知
+    sendToConversation-url: https://oapi.dingtalk.com/topapi/message/corpconversation/asyncsend_v2
+    ##获取公司下部门信息
+    department-url: https://oapi.dingtalk.com/department/list
+    ##获取部门详情
+    departmentGet-url: https://oapi.dingtalk.com/department/get
+    ##发起待办
+    sendToWorkrecordAdd-url: https://oapi.dingtalk.com/topapi/workrecord/add
+    ##更新待办
+    sendToWorkrecordUpdate-url: https://oapi.dingtalk.com/topapi/workrecord/update
+    ##获取角色列表
+    getrolelist-url: https://oapi.dingtalk.com/topapi/role/list
+    ##获取角色下的员工列表
+    rolesimplelist-url:  https://oapi.dingtalk.com/topapi/role/simplelist
+    ##获取公司下所有在职员工信息
+    userOnline-url: https://oapi.dingtalk.com/topapi/smartwork/hrm/employee/queryonjob
+    ##获取公司下所有离职员工信息
+    userOffline-url: https://oapi.dingtalk.com/topapi/smartwork/hrm/employee/querydimission
+    ##获取员工的离职信息
+    userOfflineById-url: https://oapi.dingtalk.com/topapi/smartwork/hrm/employee/listdimission
+    ##根据登录授权码获取userId
+    getUserIdByCode-url: https://oapi.dingtalk.com/user/getuserinfo
+    ##工作通知消息撤回
+    recallNotify-url: https://oapi.dingtalk.com/topapi/message/corpconversation/recall
+    ##查询员工考勤组信息
+    getusergroup-url: https://oapi.dingtalk.com/topapi/attendance/getusergroup
+#日志提交时间配置
+reportsubmittime:
+    ##日报提交开始时间（18:00:00）
+    begintime: '18:00:00'
+    ##日报提交结束时间（20:00:00）
+    finishtime: '20:00:00'
+
+##钉钉考勤、签到确认通知跳转域名
+notify:
+  #考勤确认
+  recordConfirm: dingtalk://dingtalkclient/page/link?pc_slide=true&url=http://oa.sancaijia.net:8008/recordConfirm/{0}
+  #签到确认
+  signinConfirm: dingtalk://dingtalkclient/page/link?pc_slide=true&url=http://oa.sancaijia.net:8008/signinConfirm/{0}
+  #上传病例证明通知
+  uploadCaseCertificate: dingtalk://dingtalkclient/page/link?pc_slide=true&url=http://oa.sancaijia.net:8008/uploadCaseCertificate/{0}
+  #测试环境给员工发送考勤确认部门id（部门下所有人）
+  recordConfirm-test-deptid: "[{'companyId':'C5BD8B0F1F4C40AEA94E7A4294EEC228','depts':[123059207,123071226]},{'companyId':'727052b0a78c430e90a510111658ff2b','depts':[123172189,123172189]}]"
+  #测试环境给部门主管发送签到确认部门id（部门下主管）
+  signinConfirm-test-deptid: "[{'companyId':'C5BD8B0F1F4C40AEA94E7A4294EEC228','depts':[123059207,123071226]},{'companyId':'727052b0a78c430e90a510111658ff2b','depts':[123172189,123172189]}]"
+  #测试环境给测试人员发送上传病例证明通知
+  uploads-certificate-test-userid: "{'companyId':'727052b0a78c430e90a510111658ff2b','userId1':'15646502366791785','userId2':'2252511108692023'}"
+#定时任务异常通知用户列表
+task-exception-notice-userid: 0551112829075720,05555018501218758,2252511108692023
+
+filePath:
+  #zip文件存储路径
+  zipStorePath: /opt/download/oa_file_demo/

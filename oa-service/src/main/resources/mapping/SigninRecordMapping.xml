@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sancai.oa.signin.mapper.SigninRecordMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.sancai.oa.signin.entity.SigninRecord">
+        <id column="id" property="id" />
+        <result column="user_id" property="userId" />
+        <result column="user_name" property="userName" />
+        <result column="company_id" property="companyId" />
+        <result column="image_list" property="imageList" />
+        <result column="place" property="place" />
+        <result column="detail_place" property="detailPlace" />
+        <result column="remark" property="remark" />
+        <result column="checkin_time" property="checkinTime" />
+        <result column="visit_user" property="visitUser" />
+        <result column="longitude" property="longitude" />
+        <result column="latitude" property="latitude" />
+        <result column="status" property="status" />
+        <result column="confirm" property="confirm" />
+        <result column="create_time" property="createTime" />
+        <result column="modify_time" property="modifyTime" />
+        <result column="deleted" property="deleted" />
+        <result column="out_apply_id" property="outApplyId" />
+        <result column="confirm_user_id" property="confirmUserId" />
+        <result column="invalid_reason" property="invalidReason" />
+        <result column="attendance_id" property="attendanceId" />
+        <result column="task_instance_id" property="taskInstanceId" />
+        <result column="signin_confirm_id" property="signinConfirmId" />
+
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, user_id, user_name, company_id, image_list, place, detail_place, remark, checkin_time, visit_user, longitude, latitude, status, confirm, create_time, modify_time, deleted, out_apply_id, confirm_user_id, invalid_reason, attendance_id, task_instance_id, signin_confirm_id
+    </sql>
+
+    <!-- 根据id修改签到记录状态-->
+    <update id="updateTsigninRecordStateById" parameterType="com.sancai.oa.signin.entity.SigninRecord">
+        update t_signin_record
+        <set>
+            status = #{status},
+            invalid_reason = NULL,
+            out_apply_id = #{outApplyId}
+        </set>
+        where id = #{id}
+    </update>
+    <sql id="Base_id_SigninRecord">
+     	tsr.id as "id",
+        tsr.user_name AS "name",
+        tsr.user_id AS "user_id",
+        to_char(TO_TIMESTAMP(tsr.checkin_time / 1000),'yyyy-MM-DD hh24:MI:ss')  AS "checkin_times",
+        tsr.checkin_time  AS "checkin_time",
+        tsr.checkin_time_desc,
+        tsr.checkin_time_hms_desc,
+        COALESCE(tsr.place,'') AS "place",
+        tsr.status AS "status",
+        tsr.confirm AS "confirm",
+        COALESCE(tsr.invalid_reason,'') as "invalid_reason",
+        COALESCE(tsr.confirm_user_id,'') as "confirm_user_id",
+        COALESCE(tsr.dept_ids,'') AS  "dept_ids",
+        COALESCE(tsr.dept_ids,'') AS  "dept_id"
+    </sql>
+    <!--签到记录列表-->
+    <select id="signinRecordList" resultType="com.sancai.oa.report.entity.modify.DataMap" parameterType="com.sancai.oa.signin.entity.SigninRecordDTO">
+        SELECT DISTINCT
+        <include refid="Base_id_SigninRecord"/>
+        FROM
+        t_signin_department tsd
+        LEFT JOIN (
+        SELECT
+        tsrs.ID,
+        tsrs.user_name,
+        tsrs.user_id,
+        tsd.dept_ids,
+        tsrs.checkin_time,
+        to_char(TO_TIMESTAMP(tsrs.checkin_time / 1000),'yyyy-MM-DD') AS "checkin_time_desc",
+        to_char(TO_TIMESTAMP(tsrs.checkin_time / 1000),'hh24:MI:ss') AS "checkin_time_hms_desc",
+        tsrs.company_id,
+        tsrs.deleted,
+        COALESCE (tsrs.place, '') AS "place",
+        tsrs.status AS "status",
+        tsrs.confirm AS "confirm",
+        COALESCE (tsrs.invalid_reason, '') AS "invalid_reason",
+        COALESCE (tsrs.confirm_user_id, '') AS "confirm_user_id"
+        FROM
+        t_signin_record tsrs
+        LEFT JOIN (
+        SELECT
+        tsd2.signin_instance_id,
+        string_agg (CAST(tsd2.dept_id AS VARCHAR), ',') dept_ids
+        FROM
+        t_signin_department tsd2
+        WHERE tsd2.deleted = 0
+        GROUP BY
+        tsd2.signin_instance_id
+        ) tsd ON tsrs.id = tsd.signin_instance_id
+
+        ) tsr ON tsr.id = tsd.signin_instance_id
+        WHERE
+        tsr.company_id = #{companyId}
+        AND tsr.deleted = 0
+        AND tsr.dept_ids !=''
+        <if test="name!=null  and name!='' ">
+            and tsr.user_name = #{name}
+        </if>
+        <if test="deptId != null and deptId !=''">
+            and dept_id in
+            <foreach collection="deptList" item="id" index="index" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+        <if test="status!=null  and status!='' ">
+            and tsr.status = #{status}
+        </if>
+        <if test="confirm!=null  and confirm!='' ">
+            and tsr.confirm = #{confirm}
+        </if>
+        <if test="startTime!=null and startTime!=''">
+            AND tsr.checkin_time &gt;= #{startTime}
+        </if>
+        <if test="endTime!=null and endTime!=''">
+            AND tsr.checkin_time &lt;= #{endTime}
+        </if>
+        ORDER BY tsr.checkin_time_desc DESC,dept_ids DESC,tsr.checkin_time_hms_desc desc
+    </select>
+    <!-- 批量保存sql -->
+    <insert  id="batchSave" parameterType="java.util.List" >
+        INSERT INTO t_signin_record (
+        id,
+        user_id,
+        user_name,
+        company_id,
+        image_list,
+        place,
+        detail_place,
+        remark,
+        checkin_time,
+        visit_user,
+        longitude,
+        latitude,
+        status,
+        confirm,
+        create_time,
+        modify_time,
+        deleted,
+        out_apply_id,
+        confirm_user_id,
+        invalid_reason,
+        attendance_id,
+        task_instance_id
+        )
+        VALUES
+        <foreach collection="list"  index="index" item="item" separator=",">
+            (
+            #{item.id},
+            #{item.userId},
+            #{item.userName},
+            #{item.companyId},
+            #{item.imageList},
+            #{item.place},
+            #{item.detailPlace},
+            #{item.remark},
+            #{item.checkinTime},
+            #{item.visitUser},
+            #{item.longitude},
+            #{item.latitude},
+            #{item.status},
+            #{item.confirm},
+            #{item.createTime},
+            #{item.modifyTime},
+            #{item.deleted},
+            #{item.outApplyId},
+            #{item.confirmUserId},
+            #{item.invalidReason},
+            #{item.attendanceId},
+            #{item.taskInstanceId}
+            )
+        </foreach>
+    </insert>
+    <!--记录对应部门数据-->
+    <select id="signinRecordDeptIdList" resultType="com.sancai.oa.report.entity.modify.DataMap" >
+      select
+        tsr.id ,
+        tsr.user_id ,
+        tsr.checkin_time as "times" ,
+        COALESCE(tsd.dept_ids,'') as "deptList",
+        tsr.company_id ,
+        tsr.task_instance_id
+        FROM
+        t_signin_record tsr
+        LEFT JOIN (
+        SELECT
+        tsd2.signin_instance_id,
+        string_agg (CAST(tsd2.dept_id AS VARCHAR), ',') dept_ids
+        FROM
+        t_signin_department tsd2
+        WHERE tsd2.deleted = 0
+        GROUP BY
+        tsd2.signin_instance_id
+        ) tsd ON tsr.id = tsd.signin_instance_id
+        WHERE
+         tsr.company_id =  #{companyId}
+        and tsr.task_instance_id =  #{taskInstanceId}
+        and tsr.deleted = 0
+        AND tsd.dept_ids !=''
+    </select>
+</mapper>

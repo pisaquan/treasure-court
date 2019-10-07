@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sancai.oa.report.mapper.ReportRuleMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.sancai.oa.report.entity.ReportRule">
+        <id column="id" property="id" />
+        <result column="template_id" property="templateId" />
+        <result column="field_rule" property="fieldRule" />
+        <result column="create_time" property="createTime" />
+        <result column="modify_time" property="modifyTime" />
+        <result column="deleted" property="deleted" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, template_id, field_rule, create_time, modify_time, deleted
+    </sql>
+
+    <sql id="report_rule_id">
+        trr.id as "id",
+        trr.template_id AS "template_id",
+        trr.field_rule AS "field_rule",
+        trt.name as "template_name",
+        trt.code as "template_code",
+        trt.begin_time as "start_time",
+        trt.finish_time as "end_time"
+    </sql>
+    <!--根据模板id或模板code取规则-->
+    <select id="reportRuleListByIdOrCode" resultType="com.sancai.oa.report.entity.modify.DataMap" parameterType="java.util.Map">
+        select
+        <include refid="report_rule_id"/>
+        FROM  t_report_rule trr
+        LEFT JOIN t_report_template trt ON trr.template_id =trt.id
+        WHERE trr.deleted = 0
+        <if test="template_id!=null  and template_id!='' ">
+            and  trr.template_id = #{template_id}
+        </if>
+        <if test="template_code!=null  and template_code!='' ">
+            and  trt.code = #{template_code}
+        </if>
+    </select>
+
+
+
+
+</mapper>

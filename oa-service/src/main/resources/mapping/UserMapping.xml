@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sancai.oa.user.mapper.UserMapper">
+ 
+    <resultMap id="BaseResultMap" type="com.sancai.oa.user.entity.User">
+        <result column="id" jdbcType="VARCHAR" property="id" />
+        <result column="user_id" jdbcType="VARCHAR" property="userId" />
+        <result column="name" jdbcType="VARCHAR" property="name" />
+        <result column="dept_id" jdbcType="VARCHAR" property="deptId" />
+        <result column="mobile" jdbcType="VARCHAR" property="mobile" />
+        <result column="create_time" property="createTime" />
+        <result column="modify_time" property="modifyTime" />
+        <result column="deleted" property="deleted" />
+        <result column="company_id" property="companyId" />
+        <result column="status" property="status" />
+        <result column="task_instance_id" property="taskInstanceId" />
+        <result column="last_work_day" property="lastWorkDay" />
+    </resultMap>
+
+    <resultMap id="UserMap" type="com.sancai.oa.user.entity.UserDTO">
+        <result column="id" jdbcType="VARCHAR" property="id" />
+        <result column="user_id" jdbcType="VARCHAR" property="userId" />
+        <result column="name" jdbcType="VARCHAR" property="name" />
+        <result column="dept_id" jdbcType="VARCHAR" property="deptId" />
+        <result column="mobile" jdbcType="VARCHAR" property="mobile" />
+        <result column="create_time" property="createTime" />
+        <result column="modify_time" property="modifyTime" />
+        <result column="deleted" property="deleted" />
+        <result column="company_id" property="companyId" />
+        <result column="status" property="status" />
+        <result column="task_instance_id" property="taskInstanceId" />
+        <result column="last_work_day" property="lastWorkDay" />
+        <collection property="userDepartments" ofType="UserDepartmentMap" column="id" select="getUserDepartment"></collection>
+    </resultMap>
+
+    <resultMap id="UserDepartmentMap" type="com.sancai.oa.user.entity.UserDepartment">
+        <result column="id" property="id" />
+        <result column="u_id" property="uId" />
+        <result column="dept_id" property="deptId" />
+        <result column="deleted" property="deleted" />
+        <result column="create_time" property="createTime" />
+        <result column="modify_time" property="modifyTime" />
+        <result column="task_instance_id" property="taskInstanceId" />
+    </resultMap>
+
+    <select id="getUserDepartment" resultType="com.sancai.oa.user.entity.UserDepartment">
+        select id, u_id, dept_id, deleted, create_time, modify_time, task_instance_id from t_user_department where u_id = #{id}
+    </select>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, user_id, name, dept_id, mobile, create_time, modify_time, deleted, company_id, status, task_instance_id, last_work_day
+    </sql>
+
+    <select id="getUser" resultType="com.sancai.oa.user.entity.User">
+        select id,name from t_user where id = #{id}
+    </select>
+ 
+    <insert id="saveUser" parameterType="com.sancai.oa.user.entity.User">
+        insert into t_user(id,name) values (#{id},#{name})
+    </insert>
+
+    <!--根据任务id获取公司id-->
+    <select id="getCompanyIdBySId" parameterType="java.lang.String" resultType="java.lang.String">
+        select company_id from t_signin_confirm where id=#{id} and deleted = 0
+    </select>
+    <!--根据任务id获取公司id-->
+    <select id="getCompanyIdByAId" parameterType="java.lang.String" resultType="java.lang.String">
+        select company_id from t_attendance_record where id=#{id} and deleted = 0
+    </select>
+    <!-- 批量保存sql -->
+    <insert  id="batchSave" parameterType="java.util.List" >
+        INSERT INTO t_user(
+        id,
+        user_id,
+        name,
+        dept_id,
+        create_time,
+        modify_time,
+        deleted,
+        mobile,
+        company_id,
+        status,
+        task_instance_id,
+        last_work_day
+        )
+        VALUES
+        <foreach collection="list"  index="index" item="item" separator=",">
+            (#{item.id},
+            #{item.userId},
+            #{item.name},
+            #{item.deptId},
+            #{item.createTime},
+            #{item.modifyTime},
+            #{item.deleted},
+            #{item.mobile},
+            #{item.companyId},
+            #{item.status},
+            #{item.taskInstanceId},
+            #{item.lastWorkDay}
+            )
+        </foreach>
+    </insert>
+
+    <update id="batchUpdateStatusOff" parameterType="java.util.List">
+        update t_user
+        set status=1
+        where id in
+        <foreach collection="list" index="index" item="item"
+                 separator="," open="(" close=")">
+            #{item.id}
+        </foreach>
+    </update>
+    <!--查询离职人员-->
+    <select id="queryDimission"  resultType="java.lang.Integer">
+        select count(status) sum from t_user where status =1 and deleted = 0 and POSITION(#{deptId} in dept_id)>0
+        and <![CDATA[last_work_day >= #{firstDayLongTime}]]>
+        and <![CDATA[last_work_day <= #{lastDayLongTime}]]>
+        GROUP BY status
+    </select>
+
+    <!--查询在职人员-->
+    <select id="queryInService" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        	select count(id ) from t_attendance_record  where id  in (select attendance_record_id from t_attendance_record_department where dept_id = #{deptId} and deleted = 0 ) and deleted = 0
+    </select>
+
+    <!--查询用户信息-->
+    <select id="listUserByWorkDay"  resultMap="UserMap">
+
+        select id, user_id, name, dept_id, mobile, create_time, modify_time, deleted, company_id, status, task_instance_id, last_work_day
+        from (
+        select row_number() over(partition by user_id order by status ,last_work_day desc ) rn ,
+        id, user_id, name, dept_id, mobile, create_time, modify_time, deleted, company_id, status, task_instance_id, last_work_day
+        from t_user where deleted = 0 and company_id = #{companyId}
+        and ( status = 0 or ( status= 1 and last_work_day is null )
+          <if test="startTime != null and startTime !=''">
+              or (status= 1  and <![CDATA[last_work_day >= #{startTime}]]> )
+          </if>
+        )
+        ) tt where rn = 1
+    </select>
+    <!--查询用户信息-->
+    <select id="listUserByCompany"  resultMap="UserMap">
+
+        select id, user_id, name, dept_id, mobile, create_time, modify_time, deleted, company_id, status, task_instance_id, last_work_day
+        from (
+        select row_number() over(partition by user_id order by status ,last_work_day desc ) rn ,
+        id, user_id, name, dept_id, mobile, create_time, modify_time, deleted, company_id, status, task_instance_id, last_work_day from t_user where deleted = 0
+        <if test="companyId != null and companyId !=''">
+            and company_id = #{companyId}
+        </if>
+        <if test="status != null ">
+            and status = #{status}
+        </if>
+        ) tt where rn = 1
+
+    </select>
+
+
+    <!--查询用户信息-->
+    <select id="getUserByUserId"  resultMap="UserMap">
+        select  <include refid="Base_Column_List"/>  from t_user where deleted = 0
+        <if test="companyId != null and companyId !=''">
+            and company_id = #{companyId}
+        </if>
+        <if test="userId != null and userId !=''">
+            and user_id = #{userId}
+        </if>
+        order by status
+        limit 1
+    </select>
+    <!--查询用户信息-->
+    <select id="listUserByCompanyAndName"  resultMap="UserMap">
+        select  <include refid="Base_Column_List"/>  from t_user where deleted = 0
+        <if test="companyId != null and companyId !=''">
+            and company_id = #{companyId}
+        </if>
+        <if test="type != null and type !=''  and type ==1 ">
+            and name = #{name}
+        </if>
+        <if test="type != null and type !=''  and type ==2 ">
+            and name like concat('%',#{name},'%')
+        </if>
+    </select>
+
+    <!--根据员工姓名，公司id查询员工信息-->
+    <select id="getUserByUserName" resultMap="UserMap">
+        select  <include refid="Base_Column_List"/>  from t_user where deleted = 0
+        <if test="companyId != null and companyId !=''">
+            and company_id = #{companyId}
+        </if>
+        <if test="name != null and name !=''">
+            and name = #{name}
+        </if>
+        <if test="status != null and status !=''">
+            and status = #{status}
+        </if>
+    </select>
+
+    <!--根据任务id从请假表中获取公司id-->
+    <select id="getCompanyIdByEId" parameterType="java.lang.String" resultType="java.lang.String">
+        select company_id from t_examine_leave where id=#{id} and deleted = 0
+    </select>
+
+</mapper>
+

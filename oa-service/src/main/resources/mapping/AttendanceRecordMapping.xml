@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sancai.oa.clockin.mapper.AttendanceRecordMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.sancai.oa.clockin.entity.AttendanceRecord">
+        <id column="id" property="id" />
+        <result column="user_id" property="userId" />
+        <result column="user_name" property="userName" />
+        <result column="company_id" property="companyId" />
+        <result column="month" property="month" />
+        <result column="not_signed_count" property="notSignedCount" />
+        <result column="early_count" property="earlyCount" />
+        <result column="late_count" property="lateCount" />
+        <result column="absenteeism_days" property="absenteeismDays" />
+        <result column="salary_days" property="salaryDays" />
+        <result column="attendance_days" property="attendanceDays" />
+        <result column="business_travel_days" property="businessTravelDays" />
+        <result column="holiday_days" property="holidayDays" />
+        <result column="sick_leave_days" property="sickLeaveDays" />
+        <result column="personal_leave_days" property="personalLeaveDays" />
+        <result column="childbirth_leave_days" property="childbirthLeaveDays" />
+        <result column="marriage_leave_days" property="marriageLeaveDays" />
+        <result column="funeral_leave_days" property="funeralLeaveDays" />
+        <result column="score" property="score" />
+        <result column="report_low_quality_count" property="reportLowQualityCount" />
+        <result column="user_confirm" property="userConfirm" />
+        <result column="user_confirm_time" property="userConfirmTime" />
+        <result column="create_time" property="createTime" />
+        <result column="modify_time" property="modifyTime" />
+        <result column="deleted" property="deleted" />
+        <result column="task_instance_id" property="taskInstanceId" />
+        <result column="not_attendance_absenteeism_days" property="notAttendanceAbsenteeismDays" />
+        <result column="not_signed_absenteeism_days" property="notSignedAbsenteeismDays" />
+        <result column="late_absenteeism_days" property="lateAbsenteeismDays" />
+        <result column="early_absenteeism_days" property="earlyAbsenteeismDays" />
+        <result column="report_early_absenteeism_days" property="reportEarlyAbsenteeismDays" />
+        <result column="report_late_absenteeism_days" property="reportLateAbsenteeismDays" />
+        <result column="paid_sick_leave_days" property="paidSickLeaveDays" />
+        <result column="unpaid_sick_leave_days" property="unpaidSickLeaveDays" />
+        <result column="paternity_leave_days" property="paternityLeaveDays" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, user_id, user_name, company_id, month, not_signed_count, early_count, late_count, absenteeism_days, salary_days, attendance_days, business_travel_days, holiday_days, sick_leave_days, personal_leave_days, childbirth_leave_days, marriage_leave_days, funeral_leave_days, score, report_low_quality_count, user_confirm, user_confirm_time, create_time, modify_time, deleted,task_instance_id,not_attendance_absenteeism_days,not_signed_absenteeism_days,late_absenteeism_days,early_absenteeism_days,report_early_absenteeism_days,report_late_absenteeism_days,paternity_leave_days
+    </sql>
+    <resultMap id="attendanceRecordMap" type="java.util.Map">
+        <result column="id" property="id" />
+        <result column="month" property="month" />
+        <result column="user_id" property="user_id" />
+        <result column="user_name" property="user_name" />
+        <result column="dept_id" property="dept_id" />
+        <result column="not_signed_count" property="not_signed_count" />
+        <result column="sick_leave_days" property="sick_leave_days" />
+        <result column="personal_leave_days" property="personal_leave_days" />
+        <result column="childbirth_leave_days" property="childbirth_leave_days" />
+        <result column="absenteeism_days" property="absenteeism_days" />
+        <result column="absenteeism_days" property="absenteeism_days" />
+        <result column="late_count" property="late_count" />
+        <result column="early_count" property="early_count" />
+        <result column="holiday_days" property="holiday_days" />
+        <result column="salary_days" property="salary_days" />
+        <result column="attendance_days" property="attendance_days" />
+        <result column="confirm" property="confirm" />
+        <result column="marriage_leave_days" property="marriage_leave_days" />
+        <result column="funeral_leave_days" property="funeral_leave_days" />
+    </resultMap>
+
+    <resultMap id="attendanceRecordDetailMap" type="java.util.Map">
+        <result column="id" property="id" />
+        <result column="month" property="month" />
+        <result column="user_name" property="user_name" />
+        <result column="dept_id" property="dept_id" />
+        <result column="clock_in_every_day" property="clock_in_every_day" />
+        <result column="not_signed_count" property="not_signed_count" />
+        <result column="sick_leave_days" property="sick_leave_days" />
+        <result column="personal_leave_days" property="personal_leave_days" />
+        <result column="childbirth_leave_days" property="childbirth_leave_days" />
+        <result column="absenteeism_days" property="absenteeism_days" />
+        <result column="absenteeism_days" property="absenteeism_days" />
+        <result column="late_count" property="late_count" />
+        <result column="early_count" property="early_count" />
+        <result column="holiday_days" property="holiday_days" />
+        <result column="salary_days" property="salary_days" />
+        <result column="attendance_days" property="attendance_days" />
+        <result column="business_travel_days" property="business_travel_days" />
+        <result column="score" property="score" />
+        <result column="report_low_quality_count" property="report_low_quality_count" />
+        <result column="confirm" property="confirm" />
+        <result column="company_id" property="company_id" />
+        <result column="not_attendance_absenteeism_days" property="not_attendance_absenteeism_days" />
+        <result column="not_signed_absenteeism_days" property="not_signed_absenteeism_days" />
+        <result column="late_absenteeism_days" property="late_absenteeism_days" />
+        <result column="early_absenteeism_days" property="early_absenteeism_days" />
+        <result column="report_early_absenteeism_days" property="report_early_absenteeism_days" />
+        <result column="report_late_absenteeism_days" property="report_late_absenteeism_days" />
+        <result column="marriage_leave_days" property="marriage_leave_days" />
+        <result column="funeral_leave_days" property="funeral_leave_days" />
+        <result column="paid_sick_leave_days" property="paid_sick_leave_days" />
+        <result column="unpaid_sick_leave_days" property="unpaid_sick_leave_days" />
+        <result column="paternity_leave_days" property="paternity_leave_days" />
+    </resultMap>
+
+    <select id="attendanceRecordList" resultMap="attendanceRecordMap" parameterType="com.sancai.oa.clockin.entity.AttendanceRecordDTO">
+        select
+        ar.ID,
+        month,
+        user_id,
+        user_name,
+        not_signed_count,
+        sick_leave_days,
+        personal_leave_days,
+        childbirth_leave_days,
+        absenteeism_days,
+        late_count,
+        early_count,
+        holiday_days,
+        salary_days,
+        attendance_days,
+        array_to_string(array_agg(ard.dept_id),',')  dept_id,
+        user_confirm confirm,
+        marriage_leave_days,
+        funeral_leave_days
+        FROM  t_attendance_record ar,
+        t_attendance_record_department ard
+        WHERE
+        ard.attendance_record_id = ar.ID
+        and ar.company_id = #{companyId}
+
+        <if test="userName != null and userName !=''">
+            and user_name = #{userName}
+        </if>
+        <if test="month != null and month !=''">
+            and month = #{month}
+        </if>
+        <if test="confirmStr != null and confirmStr !=''">
+            and user_confirm = #{confirm}
+        </if>
+        <if test="deptList != null and deptList.size()>0  ">
+            AND ard.dept_id  IN
+            <foreach collection="deptList" item="id" index="index" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+        and ar.deleted = 0
+        GROUP BY ar.ID,
+        month,
+        user_id,
+        user_name,
+        not_signed_count,
+        sick_leave_days,
+        personal_leave_days,
+        childbirth_leave_days,
+        absenteeism_days,
+        late_count,
+        early_count,
+        holiday_days,
+        salary_days,
+        attendance_days
+        order by month desc,dept_id  desc
+    </select>
+    <select id="getAttendanceRecordDetail" resultMap="attendanceRecordDetailMap" parameterType="java.lang.String">
+        SELECT
+              ar.ID,
+                month,
+                user_name,
+                ( select array_to_string(array_agg(dept_id),',') from t_attendance_record_department ard where ard.attendance_record_id = ar.id )  dept_id,
+           (	SELECT crm.content from t_clockin_record cr , t_clockin_record_merge crm where cr.id = crm.clockin_id
+	and cr.user_id = ar.user_id and cr.month = ar.month and ar.company_id = cr.company_id and cr.deleted = 0 and crm.deleted = 0  ORDER BY crm.create_time desc limit 1	)  clock_in_every_day,
+                not_signed_count,
+                sick_leave_days,
+                personal_leave_days,
+                childbirth_leave_days,
+                company_id,
+                absenteeism_days,
+                late_count,
+                early_count,
+                holiday_days,
+                salary_days,
+                attendance_days,
+                business_travel_days,
+                score,
+                report_low_quality_count,
+                user_confirm confirm,
+                not_attendance_absenteeism_days,
+                not_signed_absenteeism_days,
+                late_absenteeism_days,
+                early_absenteeism_days,
+                report_early_absenteeism_days,
+                report_late_absenteeism_days,
+                marriage_leave_days,
+                funeral_leave_days,
+                paid_sick_leave_days,
+                unpaid_sick_leave_days,
+                paternity_leave_days
+            FROM
+                t_attendance_record ar
+                where id = #{id}
+                and ar.deleted = 0
+    </select>
+
+    <!--获取content和对应的clockinId-->
+    <resultMap id="getContentMap" type="java.util.Map">
+        <result column="clockin_id" property="clockinId"/>
+        <result column="content" property="content"/>
+    </resultMap>
+
+    <!--根据t_attendance_record的id关联t_clockin_record表，查询出t_clockin_record_merge中的content-->
+    <select id="getContentById" parameterType="java.lang.String" resultMap="getContentMap">
+       select clockin_id,content from t_clockin_record_merge m
+    where clockin_id = (select id from  t_clockin_record r INNER JOIN (select user_id,month ,company_id from t_attendance_record where id =#{id} and deleted = 0) a ON r.user_id =a.user_id and r.month = a.month and r.company_id = a.company_id and r.deleted = 0 ) and m.deleted = 0 limit 1
+    </select>
+
+    <!--封装为ClockinRecordMergeDTO对象-->
+    <resultMap id="DTOResultMap" type="com.sancai.oa.clockin.entity.ClockinRecordMergeDTO">
+        <id column="id" property="attendanceRecordId"/>
+        <result column="user_id" property="userId"/>
+        <result column="user_name" property="userName"/>
+        <result column="company_id" property="companyId"/>
+        <result column="month" property="statisticalMonth"/>
+        <result column="task_instance_id" property="taskInstanceId"/>
+    </resultMap>
+    <!--根据id查询封装ClockinRecordMergeDTO对象-->
+    <select id="queryDTOById" parameterType="java.lang.String" resultMap="DTOResultMap">
+        select id,user_id,user_name,company_id,month,task_instance_id from t_attendance_record where id = #{id}  and deleted = 0
+    </select>
+    <!--记录对应部门数据-->
+    <select id="attendanceRecordDeptIdList" resultType="com.sancai.oa.report.entity.modify.DataMap" >
+    select
+        tsr.id ,
+        tsr.user_id ,
+        tsr.user_name,
+        tsr.month as "times" ,
+        COALESCE(tsd.dept_ids,'') as "deptList",
+        tsr.company_id ,
+        tsr.task_instance_id
+        FROM
+        t_attendance_record tsr
+        LEFT JOIN (
+        SELECT
+        tsd2.attendance_record_id,
+        string_agg (CAST(tsd2.dept_id AS VARCHAR), ',') dept_ids
+        FROM
+        t_attendance_record_department tsd2
+        WHERE tsd2.deleted = 0
+        GROUP BY
+        tsd2.attendance_record_id
+        ) tsd ON tsr.id = tsd.attendance_record_id
+        WHERE
+         tsr.company_id =  #{companyId}
+        and tsr.task_instance_id =  #{taskInstanceId}
+        and tsr.deleted = 0
+        AND tsd.dept_ids !=''
+    </select>
+</mapper>

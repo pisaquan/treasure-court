@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sancai.oa.examine.mapper.ExamineOutApplyMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.sancai.oa.examine.entity.ExamineOutApply">
+        <id column="id" property="id" />
+        <result column="user_id" property="userId" />
+        <result column="user_name" property="userName" />
+        <result column="company_id" property="companyId" />
+        <result column="process_code" property="processCode" />
+        <result column="process_instance_id" property="processInstanceId" />
+        <result column="process_title" property="processTitle" />
+        <result column="process_create_time" property="processCreateTime" />
+        <result column="process_finish_time" property="processFinishTime" />
+        <result column="process_status" property="processStatus" />
+        <result column="process_result" property="processResult" />
+        <result column="form_value_company" property="formValueCompany" />
+        <result column="form_value_start" property="formValueStart" />
+        <result column="form_value_finish" property="formValueFinish" />
+        <result column="form_value_reason" property="formValueReason" />
+        <result column="create_time" property="createTime" />
+        <result column="modify_time" property="modifyTime" />
+        <result column="deleted" property="deleted" />
+        <result column="form_value_clockin" property="formValueClockin" />
+        <result column="form_value_place" property="formValuePlace" />
+        <result column="form_value_hours" property="formValueHours" />
+        <result column="form_value_no_clockin_time" property="formValueNoClockinTime" />
+		<result column="form_value_dept_id" property="formValueDeptId" />
+        <result column="signin_confirm_id" property="signinConfirmId" />
+        <result column="task_instance_id" property="taskInstanceId" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, user_id, user_name, company_id, process_code, process_instance_id, process_title, process_create_time, process_finish_time, process_status, process_result, form_value_company, form_value_start, form_value_finish, form_value_reason, create_time, modify_time, deleted, form_value_clockin, form_value_place, form_value_hours, form_value_no_clockin_time, form_value_dept_id, signin_confirm_id, task_instance_id
+    </sql>
+
+</mapper>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sancai.oa.company.mapper.CompanyMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.sancai.oa.company.entity.Company">
+        <id column="id" property="id" />
+        <result column="name" property="name" />
+        <result column="agent_id" property="agentId" />
+        <result column="app_key" property="appKey" />
+        <result column="app_secret" property="appSecret" />
+        <result column="create_time" property="createTime" />
+        <result column="modify_time" property="modifyTime" />
+        <result column="deleted" property="deleted" />
+        <result column="corp_id" property="corpId"/>
+        <result column="user_ids" property="userIds"/>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, name, agent_id, app_key, app_secret, create_time, modify_time, deleted,corp_id,user_ids
+    </sql>
+
+    <!--根据任务id获取公司id-->
+    <select id="getCompanyIdBySId" parameterType="java.lang.String" resultType="java.lang.String">
+        select corp_id from t_company where id =( select company_id from t_signin_confirm where id=#{id} and deleted = 0) and deleted = 0
+    </select>
+    <!--根据任务id获取公司id-->
+    <select id="getCompanyIdByAId" parameterType="java.lang.String" resultType="java.lang.String">
+        select corp_id from t_company where id=(select company_id from t_attendance_record where id=#{id} and deleted = 0) and deleted = 0
+    </select>
+    <!--根据任务id从请假表中获取公司id-->
+    <select id="getCompanyIdByEId" parameterType="java.lang.String" resultType="java.lang.String">
+        select corp_id from t_company where id=(select company_id from t_examine_leave where id=#{id} and deleted = 0) and deleted = 0
+    </select>
+
+</mapper>

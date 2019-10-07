@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sancai.oa.signinconfirm.mapper.SigninConfirmMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.sancai.oa.signinconfirm.entity.SigninConfirm">
+        <id column="id" property="id" />
+        <result column="user_id" property="userId" />
+        <result column="dept_id" property="deptId" />
+        <result column="create_time" property="createTime" />
+        <result column="modify_time" property="modifyTime" />
+        <result column="deleted" property="deleted" />
+        <result column="user_name" property="userName" />
+        <result column="confirm_user_id" property="confirmUserId" />
+        <result column="day" property="day" />
+        <result column="dd_workrecord_id" property="ddWorkrecordId" />
+        <result column="status" property="status" />
+        <result column="company_id" property="companyId" />
+        <result column="task_instance_id" property="taskInstanceId" />
+    </resultMap>
+
+    <resultMap id="signinConfirmMap" type="java.util.Map">
+        <result column="id" property="id" />
+        <result column="user_id" property="user_id" />
+        <result column="user_name" property="user_name" />
+        <result column="confirm_user_id" property="confirm_user_id" />
+        <result column="day" property="day" />
+        <result column="status" property="status" />
+        <collection property="signin_record" ofType="recordMap" column="id" select="recordList"></collection>
+    </resultMap>
+
+    <resultMap id="recordMap" type="java.util.Map">
+        <result column="id" property="id" />
+        <result column="user_id" property="userId" />
+        <result column="user_name" property="userName" />
+        <result column="place" property="place" />
+        <result column="detail_place" property="detail_place" />
+        <result column="checkin_time" property="checkin_time" />
+        <result column="visit_user" property="visit_user" />
+        <result column="latitude" property="latitude" />
+        <result column="longitude" property="longitude" />
+        <result column="status" property="status" />
+        <result column="confirm" property="confirm" />
+        <result column="image_list" property="image_list" />
+    </resultMap>
+
+    <resultMap id="imagelistMap" type="java.util.Map">
+        <result column="image" property="image" />
+    </resultMap>
+
+    <resultMap id="outplayMap" type="java.util.Map">
+        <result column="id" property="id" />
+        <result column="form_value_start" property="start_time" />
+        <result column="form_value_finish" property="end_time" />
+        <result column="form_value_hours" property="hours" />
+        <result column="form_value_place" property="place" />
+        <result column="form_value_reason" property="reason" />
+        <result column="form_value_clockin" property="clockin" />
+        <result column="form_value_no_clockin_time" property="no_clockin_time" />
+        <collection property="signin_record" ofType="recordMap" column="id" select="recordList"></collection>
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, user_id, dept_id, create_time, modify_time, deleted, user_name, confirm_user_id, day, dd_workrecord_id, status, company_id, task_instance_id
+    </sql>
+    <sql id="ConfirmBase_id">
+        tsc.ID AS "id",
+	tsc.user_id AS "user_id",
+	tsc.user_name AS "user_name",
+	tsc.dept_id  AS "dept_id",
+	tsc.DAY AS "day",
+	tsc.status AS "status"
+    </sql>
+    <select id="signinConfirmListByCompany" resultType="java.util.Map" parameterType="java.util.Map">
+        select
+        <include refid="ConfirmBase_id"/>
+        FROM  t_signin_confirm  tsc
+        WHERE
+        tsc.company_id = #{company_id}
+        <if test="user_name != null and user_name !=''">
+            and user_name =  #{user_name}
+        </if>
+        <if test="start_time != null and start_time !=''">
+            and  <![CDATA[ TO_TIMESTAMP(day,'YYYY-MM-DD') >= TO_TIMESTAMP(#{start_time}/1000)]]>
+        </if>
+        <if test="end_time != null and end_time !=''">
+            and  <![CDATA[ TO_TIMESTAMP(day,'YYYY-MM-DD') <= TO_TIMESTAMP(#{end_time}/1000)]]>
+        </if>
+
+        <if test="status != null and status != ''">
+            and status = #{status}
+        </if>
+        <if test="dept_id != null and dept_id !=''">
+            and dept_id in
+            <foreach collection="deptList" item="id" index="index" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+        and tsc.deleted = 0
+        order by day desc ,  dept_id  desc, create_time desc
+    </select>
+
+    <sql id="ConfirmDetailBase_id">
+        id,user_id,user_name,confirm_user_id,"day",status,company_id
+    </sql>
+    <select id="signinConfirmDetailById" resultMap="signinConfirmMap" parameterType="java.lang.String">
+        select
+        <include refid="ConfirmDetailBase_id"/>
+        FROM  t_signin_confirm  tsc
+        WHERE
+        tsc.id = #{id}
+        and tsc.deleted = 0
+    </select>
+
+
+    <select id="outplayList" resultMap="outplayMap" parameterType="java.lang.String">
+        SELECT id,
+            form_value_start ,
+            form_value_finish ,
+            form_value_hours ,
+            form_value_place ,
+            form_value_reason ,
+            form_value_clockin ,
+            form_value_no_clockin_time
+        FROM
+            t_examine_out_apply
+        WHERE deleted=0  and
+            signin_confirm_id = #{id}
+    </select>
+
+    <select id="recordList" resultMap="recordMap" parameterType="java.lang.String">
+          SELECT t_signin_record.ID,
+                t_signin_record.user_id,
+                t_signin_record.user_name,
+                t_signin_record.place,
+                t_signin_record.detail_place,
+                t_signin_record.checkin_time,
+                t_signin_record.visit_user,
+                t_signin_record.latitude,
+                t_signin_record.longitude,
+                t_signin_record.status,
+                t_signin_record.confirm,
+                t_signin_record.image_list
+            FROM
+                t_signin_record where deleted=0  and signin_confirm_id = #{id}
+                order by checkin_time desc
+    </select>
+    <select id="signConfirmIdBySignRecordId" resultType="java.lang.String" parameterType="java.lang.String">
+         select sc.id from t_signin_confirm sc ,  t_signin_record sr
+        where  sc.id = sr.signin_confirm_id and  sc.deleted=0
+        and sr.deleted=0 and sr.id =  #{id}
+    </select>
+    <select id="signConfirmAllDone" resultType="java.lang.Integer" parameterType="java.lang.String">
+        select count(1) num  from t_signin_confirm sc
+        where   sc.id = #{id}  and  sc.deleted=0
+        and exists ( select 1 from t_signin_record sr where sc.id = sr.signin_confirm_id  and sr.deleted=0 and sr.status = 'NEW' )
+    </select>
+</mapper>

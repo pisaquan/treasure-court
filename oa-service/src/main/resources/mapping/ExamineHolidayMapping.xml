@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sancai.oa.examine.mapper.ExamineHolidayMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.sancai.oa.examine.entity.ExamineHoliday">
+        <id column="id" property="id" />
+        <result column="user_id" property="userId" />
+        <result column="user_name" property="userName" />
+        <result column="company_id" property="companyId" />
+        <result column="process_code" property="processCode" />
+        <result column="process_instance_id" property="processInstanceId" />
+        <result column="process_title" property="processTitle" />
+        <result column="process_create_time" property="processCreateTime" />
+        <result column="process_finish_time" property="processFinishTime" />
+        <result column="process_status" property="processStatus" />
+        <result column="process_result" property="processResult" />
+        <result column="form_value_company" property="formValueCompany" />
+        <result column="form_value_type" property="formValueType" />
+        <result column="form_value_start" property="formValueStart" />
+        <result column="form_value_finish" property="formValueFinish" />
+        <result column="form_value_days" property="formValueDays" />
+        <result column="form_value_reason" property="formValueReason" />
+        <result column="create_time" property="createTime" />
+        <result column="modify_time" property="modifyTime" />
+        <result column="deleted" property="deleted" />
+        <result column="task_instance_id" property="taskInstanceId" />
+        <result column="form_value_start_original" property="formValueStartOriginal" />
+        <result column="form_value_finish_original" property="formValueFinishOriginal" />
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, user_id, user_name, company_id, process_code, process_instance_id, process_title, process_create_time, process_finish_time, process_status, process_result, form_value_company, form_value_type, form_value_start, form_value_finish, form_value_days, form_value_reason, create_time, modify_time, deleted, task_instance_id,form_value_start_original,form_value_finish_original
+    </sql>
+
+
+    <!--公休记录列表返回实体类-->
+    <resultMap id="ListResultMap" type="com.sancai.oa.examine.entity.ExamineHolidayDTO">
+        <id column="id" property="id"/>
+        <result column="user_name" property="name"/>
+        <result column="dept_ids" property="deptId"/>
+        <result column="form_value_type" property="type"/>
+        <result column="form_value_start" property="startTime"/>
+        <result column="form_value_finish" property="endTime"/>
+        <result column="form_value_days" property="days"/>
+        <result column="process_finish_time" property="processFinishTime"/>
+        <result column="sum" property="thisMonthHolidayDays"/>
+        <result column="form_value_start_original" property="formValueStartOriginal"/>
+        <result column="form_value_finish_original" property="formValueFinishOriginal"/>
+    </resultMap>
+
+
+    <!-- 公休列表查询 -->
+    <select id="getExamineHolidayList" parameterType="com.sancai.oa.examine.entity.RequestEntity" resultMap="ListResultMap">
+        WITH
+        s1 as
+        (select id,user_name,user_id,form_value_start,form_value_finish,form_value_start_original,form_value_finish_original,process_finish_time,form_value_days,company_id, form_value_type,to_char(TO_TIMESTAMP(process_create_time/1000) ,'yyyy')||''||to_char(TO_TIMESTAMP(process_create_time/1000) ,'mm' ) ||''  yearmonth from t_examine_holiday where company_id=#{companyId} and deleted = 0 and process_status='COMPLETED' and process_result='agree'),
+        s2 as
+        (select s1.yearmonth createtime,sum(form_value_days),user_id from s1 GROUP BY s1.yearmonth,user_id) ,
+        s3 as
+        (select s2.sum ,s1.id,s1.user_name,s1.form_value_start,s1.form_value_start_original,s1.form_value_finish_original,s1.form_value_finish,s1.process_finish_time,s1.form_value_days,s1.form_value_type from s1 left join s2 on s1.user_id  = s2.user_id and s1.yearmonth = s2.createtime) ,
+        s4 as
+        (select examine_instance_id,string_agg(cast(dept_id as VARCHAR), ',' order by dept_id desc ) dept_ids from t_examine_department where  deleted = 0
+            <if test="deptList != null and deptList.size()>0  ">
+               and dept_id in
+               <foreach collection="deptList" item="id" index="index" open="(" close=")" separator=",">
+                   #{id}
+                </foreach>
+           </if>
+            GROUP BY examine_instance_id)
+        select s3.sum ,s3.id,s3.user_name,s3.form_value_start,s3.form_value_start_original,s3.form_value_finish_original,s3.form_value_finish,s3.process_finish_time,s3.form_value_days,s3.form_value_type,s4.dept_ids from s3,s4 where s3.id = s4.examine_instance_id
+        <if test="name != null and name !=''">
+            and user_name = #{name}
+        </if>
+        <if test="endTime != null and endTime !='' and startTime != null and startTime !=''">
+            and  not ( (<![CDATA[form_value_start > #{endTime}]]>) or (<![CDATA[form_value_finish < #{startTime} ]]>) )
+        </if>
+        <if test="type != null and type != ''">
+            and form_value_type = #{type}
+        </if>
+        order by to_char(TO_TIMESTAMP(form_value_start/1000),'YYYY-MM-DD') DESC,dept_ids  DESC,to_char(TO_TIMESTAMP(form_value_start/1000),'hh24:mi:ss') DESC
+    </select>
+
+
+    <!--根据Id公休详情返回实体类-->
+    <resultMap id="DetailResultMap" type="com.sancai.oa.examine.entity.ExamineHolidayDetailDTO">
+        <id column="id" property="id"/>
+        <result column="user_name" property="name"/>
+        <result column="dept_ids" property="deptName"/>
+        <result column="form_value_type" property="type"/>
+        <result column="form_value_start" property="startTime"/>
+        <result column="form_value_finish" property="endTime"/>
+        <result column="form_value_days" property="days"/>
+        <result column="process_finish_time" property="processFinishTime"/>
+        <result column="sum" property="thisMonthHolidayDays"/>
+        <result column="form_value_reason" property="reason"/>
+        <result column="form_value_start_original" property="formValueStartOriginal"/>
+        <result column="form_value_finish_original" property="formValueFinishOriginal"/>
+    </resultMap>
+    <!--公休详情查询-->
+    <select id="getHolidayDetail" parameterType="java.lang.String" resultMap="DetailResultMap">
+	WITH
+		s1 as
+		(select id,user_id,user_name,form_value_type,form_value_start,form_value_start_original,form_value_finish_original,form_value_finish,form_value_reason,form_value_days,deleted,process_finish_time,to_char(TO_TIMESTAMP(process_create_time/1000) ,'yyyy')||''||to_char(TO_TIMESTAMP(process_create_time/1000) ,'mm' ) ||''  yearmonth from t_examine_holiday where company_id = (select company_id from t_examine_holiday where id =#{id} and deleted = 0) and process_status='COMPLETED' and process_result ='agree' and deleted = 0),
+		s2 as
+	    (select examine_instance_id,string_agg(cast(dept_id as VARCHAR), ',' order by dept_id desc) dept_ids from t_examine_department where deleted = 0 GROUP BY examine_instance_id)
+		select  s1.id,s1.user_name,s1.form_value_start,s1.form_value_start_original,s1.form_value_finish_original,s1.form_value_finish,s1.process_finish_time,s1.form_value_reason,s1.form_value_type,s1.form_value_days,s2.dept_ids from s1,s2 where s1.id = s2.examine_instance_id and s1.id =#{id}
+    </select>
+
+    <!--记录对应部门数据-->
+    <select id="holidayRecordDeptIdList" resultType="com.sancai.oa.report.entity.modify.DataMap" >
+    select
+        tsr.id ,
+        tsr.user_id ,
+        tsr.user_name,
+        tsr.process_instance_id ,
+        COALESCE(tsd.dept_ids,'') as "deptList",
+        tsr.company_id ,
+        tsr.task_instance_id,
+        '' as "form_value_user_id"
+        FROM
+        t_examine_holiday tsr
+        LEFT JOIN (
+        SELECT
+        tsd2.examine_instance_id,
+        string_agg (CAST(tsd2.dept_id AS VARCHAR), ',') dept_ids
+        FROM
+        t_examine_department tsd2
+        WHERE tsd2.deleted = 0
+        GROUP BY
+        tsd2.examine_instance_id
+        ) tsd ON tsr.id = tsd.examine_instance_id
+        WHERE
+         tsr.company_id =  #{companyId}
+        and tsr.task_instance_id =  #{taskInstanceId}
+        and tsr.deleted = 0
+        AND tsd.dept_ids !=''
+    </select>
+</mapper>

@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sancai.oa.examine.mapper.ExamineBusinessTravelMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.sancai.oa.examine.entity.ExamineBusinessTravel">
+
+        <id column="id" property="id" />
+        <result column="user_id" property="userId" />
+        <result column="user_name" property="userName" />
+        <result column="company_id" property="companyId" />
+        <result column="process_code" property="processCode" />
+        <result column="process_instance_id" property="processInstanceId" />
+        <result column="process_title" property="processTitle" />
+        <result column="process_create_time" property="processCreateTime" />
+        <result column="process_finish_time" property="processFinishTime" />
+        <result column="process_status" property="processStatus" />
+        <result column="process_result" property="processResult" />
+        <result column="form_value_company" property="formValueCompany" />
+        <result column="form_value_reason" property="formValueReason" />
+        <result column="form_value_from_city" property="formValueFromCity" />
+        <result column="form_value_to_city" property="formValueToCity" />
+        <result column="form_value_start_time" property="formValueStartTime" />
+        <result column="form_value_finish_time" property="formValueFinishTime" />
+        <result column="form_value_start_transport" property="formValueStartTransport" />
+        <result column="form_value_finish_transport" property="formValueFinishTransport" />
+        <result column="form_value_hotel_type" property="formValueHotelType" />
+        <result column="form_value_remark" property="formValueRemark" />
+        <result column="create_time" property="createTime" />
+        <result column="modify_time" property="modifyTime" />
+        <result column="deleted" property="deleted" />
+        <result column="task_instance_id" property="taskInstanceId" />
+        <result column="form_value_start_original" property="formValueStartOriginal" />
+        <result column="form_value_finish_original" property="formValueFinishOriginal" />
+
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, user_id, user_name, company_id, process_code, process_instance_id, process_title, process_create_time, process_finish_time, process_status, process_result, form_value_company, form_value_reason, form_value_from_city, form_value_to_city, form_value_start_time, form_value_finish_time, form_value_start_transport, form_value_finish_transport, form_value_hotel_type, form_value_remark, create_time, modify_time, deleted, task_instance_id,form_value_start_original,form_value_finish_original
+    </sql>
+
+    <!--出差列表DTO-->
+    <resultMap id="ListResultMap" type="com.sancai.oa.examine.entity.ExamineBusinessTravelDTO">
+        <id column="id" property="id"/>
+        <result column="user_name" property="name"/>
+        <result column="dept_ids" property="deptId"/>
+        <result column="form_value_to_city" property="toCity"/>
+        <result column="form_value_start_time" property="startTime"/>
+        <result column="form_value_finish_time" property="endTime"/>
+        <result column="process_finish_time" property="processFinishTime"/>
+        <result column="businessdays" property="days"/>
+        <result column="sum" property="thisMonthBusinessTravelDays"/>
+        <result column="form_value_start_original" property="formValueStartOriginal"/>
+        <result column="form_value_finish_original" property="formValueFinishOriginal"/>
+    </resultMap>
+
+    <!--出差详情DTO-->
+    <resultMap id="DetailResultMap" type="com.sancai.oa.examine.entity.ExamineBusinessTravelDetailDTO">
+        <id column="id" property="id"/>
+        <result column="user_name" property="name"/>
+        <result column="dept_ids" property="deptName"/>
+        <result column="form_value_to_city" property="toCity"/>
+        <result column="form_value_start_time" property="startTime"/>
+        <result column="form_value_finish_time" property="endTime"/>
+        <result column="process_finish_time" property="processFinishTime"/>
+        <result column="businessdays" property="days"/>
+        <result column="total_days" property="thisMonthBusinessTravelDays"/>
+        <result column="form_value_reason" property="reason"/>
+        <result column="form_value_from_city" property="fromCity"/>
+        <result column="form_value_start_transport" property="startTransport"/>
+        <result column="form_value_finish_transport" property="finishTransport"/>
+        <result column="form_value_hotel_type" property="hotelType"/>
+        <result column="form_value_remark" property="remark"/>
+        <result column="form_value_start_original" property="formValueStartOriginal"/>
+        <result column="form_value_finish_original" property="formValueFinishOriginal"/>
+    </resultMap>
+
+    <!-- 出差记录列表查询 -->
+    <select id="getBusinessTravelListByPage" parameterType="com.sancai.oa.examine.entity.RequestEntity" resultMap="ListResultMap">
+        WITH
+        s1 as
+        (select id,user_name,form_value_start_time,form_value_finish_time,form_value_start_original,form_value_finish_original,user_id,form_value_to_city,company_id,process_finish_time,to_char(TO_TIMESTAMP(process_create_time/1000),'yyyy')||''||to_char(TO_TIMESTAMP(process_create_time/1000) ,'mm' ) ||'' yearmonth,
+        ((form_value_finish_time-form_value_start_time)/(3600*24*1000)+1) businessDays from t_examine_business_travel where company_id=#{companyId} and process_status ='COMPLETED' and process_result='agree' and deleted = 0),
+        s2 as
+        (select yearmonth yearmonth2,sum(businessDays),user_id from s1 GROUP BY s1.yearmonth,user_id),
+        s3 as
+        (select s1.id,s1.user_name,s1.form_value_start_time,s1.form_value_finish_time,s1.form_value_start_original,s1.form_value_finish_original,s1.businessDays,s1.process_finish_time,s1.form_value_to_city,s2.sum from s1,s2 where s1.user_id = s2.user_id and s1.yearmonth = s2.yearmonth2 ) ,
+        s4 as
+        (select examine_instance_id,string_agg(cast(dept_id as VARCHAR), ',' order by dept_id desc) dept_ids from t_examine_department where deleted = 0
+          <if test="deptList != null and deptList.size()>0  ">
+              and dept_id in
+              <foreach collection="deptList" item="id" index="index" open="(" close=")" separator=",">
+                  #{id}
+              </foreach>
+         </if>
+         GROUP BY examine_instance_id)
+        select s3.id,s3.user_name,s3.form_value_start_time,s3.form_value_finish_time,s3.form_value_start_original,s3.form_value_finish_original,s3.businessDays,s3.process_finish_time,s3.form_value_to_city,s3.sum,s4.dept_ids from s3,s4 where s3.id = s4.examine_instance_id
+        <if test="name != null and name !=''">
+            and  user_name = #{name}
+        </if>
+        <if test="endTime != null and endTime !='' and startTime != null and startTime !=''">
+            and  not ( (<![CDATA[form_value_start_time > #{endTime}]]>) or (<![CDATA[form_value_finish_time < #{startTime} ]]>) )
+        </if>
+        order by to_char(TO_TIMESTAMP(form_value_start_time/1000),'YYYY-MM-DD') DESC,dept_ids  DESC,to_char(TO_TIMESTAMP(form_value_start_time/1000),'hh24:mi:ss') DESC
+    </select>
+
+    <!--根据id查询出差详情记录-->
+    <select id="getBusinessTravelDetails" parameterType="java.lang.String" resultMap="DetailResultMap">
+ WITH
+ s1 as
+  (select id,user_name,form_value_start_time,form_value_finish_time,form_value_start_original,form_value_finish_original,form_value_from_city,form_value_to_city,form_value_reason,form_value_start_transport,form_value_finish_transport,form_value_hotel_type,form_value_remark,process_finish_time,user_id,to_char(TO_TIMESTAMP(process_create_time/1000) ,'yyyy')||''||to_char(TO_TIMESTAMP(process_create_time/1000) ,'mm' ) ||'' yearmonth,
+  ((form_value_finish_time-form_value_start_time)/(3600*24*1000)+1) businessdays from t_examine_business_travel where company_id = (select company_id from t_examine_business_travel where id =#{id} ) and process_status='COMPLETED' and process_result ='agree' and deleted = 0),
+ s2 as
+  (select yearmonth yearmonth2,sum(businessdays),user_id from  s1   GROUP BY yearmonth,user_id),
+ s3 as
+  (select s1.id,s1.user_name,s1.form_value_start_time,s1.form_value_finish_time,s1.form_value_start_original,s1.form_value_finish_original,s1.yearmonth,s1.businessdays,s1.form_value_to_city,s1.form_value_reason,s1.form_value_start_transport,s1.form_value_hotel_type,s1.form_value_remark,s1.process_finish_time,s1.form_value_from_city,s1.form_value_finish_transport,s2.sum total_days from s1,s2 where s1.user_id = s2.user_id and s1.yearmonth = s2.yearmonth2),
+ s4 as
+  (select s.examine_instance_id,string_agg(cast(dept_id as VARCHAR),',' order by dept_id desc) dept_ids from(select t.examine_instance_id,t.dept_id from s3 s,t_examine_department t  where s.id=t.examine_instance_id and s.id=#{id} and t.deleted = 0) s GROUP BY s.examine_instance_id)
+  select s3.id,s3.user_name,s3.form_value_start_time,s3.form_value_finish_time,s3.form_value_start_original,s3.form_value_finish_original,s3.form_value_to_city,s3.businessdays,s3.process_finish_time,s3.total_days,s3.form_value_reason,s3.form_value_from_city,s3.form_value_start_transport,s3.form_value_hotel_type,s3.form_value_remark,s3.form_value_finish_transport,s4.dept_ids from s3 ,s4 where s3.id = s4.examine_instance_id
+    </select>
+    <!--记录对应部门数据-->
+    <select id="businessRecordDeptIdList" resultType="com.sancai.oa.report.entity.modify.DataMap" >
+    select
+        tsr.id ,
+        tsr.user_id ,
+        tsr.user_name,
+        tsr.process_instance_id ,
+        COALESCE(tsd.dept_ids,'') as "deptList",
+        tsr.company_id ,
+        tsr.task_instance_id,
+        '' as "form_value_user_id"
+        FROM
+        t_examine_business_travel tsr
+        LEFT JOIN (
+        SELECT
+        tsd2.examine_instance_id,
+        string_agg (CAST(tsd2.dept_id AS VARCHAR), ',') dept_ids
+        FROM
+        t_examine_department tsd2
+        WHERE tsd2.deleted = 0
+        GROUP BY
+        tsd2.examine_instance_id
+        ) tsd ON tsr.id = tsd.examine_instance_id
+        WHERE
+         tsr.company_id =  #{companyId}
+        and tsr.task_instance_id =  #{taskInstanceId}
+        and tsr.deleted = 0
+        AND tsd.dept_ids !=''
+    </select>
+</mapper>

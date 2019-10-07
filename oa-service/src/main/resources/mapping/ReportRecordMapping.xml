@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.sancai.oa.report.mapper.ReportRecordMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="BaseResultMap" type="com.sancai.oa.report.entity.ReportRecord">
+        <id column="id" property="id" />
+        <result column="user_id" property="userId" />
+        <result column="user_name" property="userName" />
+        <result column="company_id" property="companyId" />
+        <result column="template_id" property="templateId" />
+        <result column="content" property="content" />
+        <result column="status" property="status" />
+        <result column="unqualified_reason" property="unqualifiedReason" />
+        <result column="report_time" property="reportTime" />
+        <result column="create_time" property="createTime" />
+        <result column="modify_time" property="modifyTime" />
+        <result column="deleted" property="deleted" />
+        <result column="task_instance_id" property="taskInstanceId" />
+        <result column="remark" property="remark" />
+
+    </resultMap>
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        id, user_id, user_name, company_id, template_id, content, status, unqualified_reason, report_time, create_time, modify_time, deleted, task_instance_id, remark
+    </sql>
+    <sql id="Base_id">
+        trr.id AS "id",
+        trr.user_name AS "name",
+        trr.company_id AS "company_id",
+        trr.template_id AS "template_id",
+        trr.content AS "content",
+        trr.create_time AS "create_time_record",
+        trr.status AS "status",
+        COALESCE(trr.unqualified_reason,'') AS "unqualified_reason",
+        trr.report_time AS "create_time",
+        trr.modify_time AS "modify_time",
+        trt.name as "template_name",
+        trr.remark as "remark"
+    </sql>
+    <!--根据主键查询详情-->
+    <select id="selectReportDetailsByPrimary" resultType="com.sancai.oa.report.entity.modify.DataMap" parameterType="java.lang.String">
+        select
+        <include refid="Base_id"/>
+        FROM  t_report_record trr
+        LEFT JOIN t_report_template trt ON trr.template_id =trt.id
+        WHERE trr.id = #{id} and trt.deleted = 0
+    </select>
+
+    <sql id="report_record_id">
+          trr.ID,
+          trr.user_name AS "name",
+          trr.dept_ids,
+          trr.dept_ids as "dept_id",
+          trr.user_id,
+          trr.report_time as "create_time" ,
+          to_char(TO_TIMESTAMP(trr.report_time / 1000),'yyyy-MM-DD hh24:MI:ss')  AS "create_times",
+          trr.report_time_desc,
+          trr.report_time_hms_desc,
+          trr.modify_time,
+          trr.status,
+          trt.name as "template_name"
+    </sql>
+
+    <!--根据部门id查询公司下的日志记录-->
+    <select id="reportRecordList" resultType="com.sancai.oa.report.entity.modify.DataMap" parameterType="com.sancai.oa.report.entity.ReportRecordDTO">
+        SELECT DISTINCT
+        <include refid="report_record_id"/>
+        FROM
+        t_report_department trd
+        LEFT JOIN (
+        SELECT
+        trrs.ID,
+        trrs.user_name,
+        trrs.user_id,
+        trd.dept_ids,
+        trrs.deleted,
+        trrs.report_time,
+        to_char(TO_TIMESTAMP(report_time / 1000),'yyyy-MM-DD') AS "report_time_desc",
+        to_char(TO_TIMESTAMP(report_time / 1000),'hh24:MI:ss') AS "report_time_hms_desc",
+        trrs.create_time,
+        trrs.modify_time,
+        trrs.status,
+        trrs.template_id,
+        trrs.company_id
+        FROM
+        t_report_record trrs
+        LEFT JOIN (
+        SELECT
+        trds.report_instance_id,
+        string_agg (CAST (trds.dept_id AS VARCHAR),',') dept_ids
+        FROM
+        t_report_department trds
+        WHERE trds.deleted = 0
+        GROUP BY
+        trds.report_instance_id
+        ) trd ON trrs. ID = trd.report_instance_id
+
+        ) trr ON trr. ID = trd.report_instance_id
+        LEFT JOIN t_report_template trt ON trr.template_id =trt.id
+        WHERE
+        trr.company_id = #{companyId}
+        and trr.deleted = 0
+        AND trr.dept_ids !=''
+        <if test="templateId!=null  and templateId!='' ">
+            and trr.template_id = #{templateId}
+        </if>
+        <if test="name!=null  and name!='' ">
+            and trr.user_name = #{name}
+        </if>
+        <if test="deptId != null and deptId !=''">
+            and dept_id in
+            <foreach collection="deptList" item="id" index="index" open="(" close=")" separator=",">
+                #{id}
+            </foreach>
+        </if>
+        <if test="status!=null  and status!='' ">
+            and trr.status = #{status}
+        </if>
+        <if test="startTime!=null and startTime!=''">
+            AND trr.report_time &gt;= #{startTime}
+        </if>
+        <if test="endTime!=null and endTime!=''">
+            AND trr.report_time &lt;= #{endTime}
+        </if>
+        ORDER BY trr.report_time_desc DESC,dept_ids DESC,trr.report_time_hms_desc DESC
+    </select>
+    <!-- 根据id修改日志记录状态-->
+    <update id="updateReportRecordStateById" parameterType="com.sancai.oa.report.entity.ReportRecord">
+        update t_report_record
+        <set>
+            status = #{status},
+            unqualified_reason = #{unqualifiedReason},
+            modify_time = #{modifyTime}
+        </set>
+        where id = #{id}
+    </update>
+    <!--记录对应部门数据-->
+    <select id="reportRecordDeptIdList" resultType="com.sancai.oa.report.entity.modify.DataMap" >
+       select
+        tsr.id ,
+        tsr.user_id ,
+        tsr.user_name,
+        tsr.report_time as "times",
+        COALESCE(tsd.dept_ids,'') as "deptList",
+        tsr.company_id ,
+        tsr.task_instance_id
+        FROM
+        t_report_record tsr
+        LEFT JOIN (
+        SELECT
+        tsd2.report_instance_id,
+        string_agg (CAST(tsd2.dept_id AS VARCHAR), ',') dept_ids
+        FROM
+        t_report_department tsd2
+        WHERE tsd2.deleted = 0
+        GROUP BY
+        tsd2.report_instance_id
+        ) tsd ON tsr.id = tsd.report_instance_id
+        WHERE
+         tsr.company_id =  #{companyId}
+        and tsr.task_instance_id =  #{taskInstanceId}
+        and tsr.deleted = 0
+        AND tsd.dept_ids !=''
+    </select>
+
+</mapper>
