@@ -284,7 +284,7 @@ public class ExamineActionServiceImpl extends ServiceImpl<ExamineActionMapper, E
                         actionScoreRecord.setUserId(examineAction.getFormValueUserId());
                         actionScoreRecord.setUserName(examineAction.getFormValueUserName());
                         actionScoreRecord.setCompanyId(examineAction.getCompanyId());
-                        actionScoreRecord.setSource(ExamineTypeEnum.EXAMINEPOSITION.getKey());
+                        actionScoreRecord.setSource(ExamineTypeEnum.EXAMINEACTION.getKey());
                         actionScoreRecord.setTargetId(examineAction.getId());
                         actionScoreRecord.setType(examineAction.getFormValueType());
                         actionScoreRecord.setScore(examineAction.getFormValueScore());
